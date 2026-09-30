@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KASOTI — ICAO 9303 check digits, running in your browser</title>
+<meta name="description" content="KASOTI checks travel documents against ICAO 9303 and refuses to return a verdict when a check did not run. This page runs part of that locally — check digits, the corpus, PDF text layers — and names what it cannot. Your document never leaves this machine.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="KASOTI — ICAO 9303 check digits, running in your browser">
+<meta property="og:description" content="ICAO 9303 check digits computed live, 10,000 corpus rows re-checked in your tab, a PDF text layer read locally, and five recorded verdicts replayed. Nothing is uploaded.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0b0d'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='19' font-weight='bold' fill='%23ffb454' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <div class="brand">KASOT<span>I</span></div>
+    <nav class="nav-links">
+      <a href="#lab"      data-en="MRZ lab"    data-hi="MRZ प्रयोगशाला">MRZ lab</a>
+      <a href="#corpus"   data-en="Corpus"     data-hi="कॉर्पस">Corpus</a>
+      <a href="#pdf"      data-en="PDF check"  data-hi="PDF जाँच">PDF check</a>
+      <a href="#verdicts" data-en="Verdicts"   data-hi="निर्णय">Verdicts</a>
+      <a href="#measured" data-en="Measured"   data-hi="मापे गए">Measured</a>
+      <a href="#limits"   data-en="Limits"     data-hi="सीमाएँ">Limits</a>
+    </nav>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="localbadge" data-en="runs locally" data-hi="स्थानीय रूप से चलता है">runs locally</span>
+      <div class="lang-toggle" id="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="on">EN</button>
+        <button type="button" data-lang="hi">हिं</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================== HERO ============================== -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow" data-en="Browser build · no server · no account" data-hi="ब्राउज़र बिल्ड · कोई सर्वर नहीं · कोई खाता नहीं">Browser build · no server · no account</p>
+
+    <!-- Two columns on a wide screen: the claim on the left, the engine proving
+         it on the right, both above the fold. Collapses to one column below. -->
+    <div class="hero-grid">
+    <div class="hero-copy">
+    <h1><span data-en="A perfect forgery of the data" data-hi="डेटा की एक पूर्ण नकल">A perfect forgery of the data</span><br>
+        <em data-en="is still the wrong artifact." data-hi="फिर भी गलत वस्तु है।">is still the wrong artifact.</em></h1>
+    <p class="lede" data-en="KASOTI screens travel documents at border posts — the machine-readable zone against ICAO 9303, the printed page against that zone, and no verdict when a check did not run. This page is a working slice: check digits, a 10,000-row corpus, a PDF text layer, recorded verdicts. Printed page and fusion are named, not faked. Your document never leaves this machine." data-hi="KASOTI सीमा पोस्ट पर यात्रा दस्तावेज़ जाँचता है। यह मशीन-पठन क्षेत्र को ICAO 9303 के अनुसार जाँचता है, मुद्रित पृष्ठ की उससे तुलना करता है, और जब कोई जाँच नहीं चली तो निर्णय देने से मना कर देता है। यह पृष्ठ उसी इंजन का एक काम करता हिस्सा है: चेक डिजिट, 10,000 पंक्तियों का कॉर्पस, PDF का टेक्स्ट लेयर, और दर्ज किए गए निर्णय। मुद्रित पृष्ठ और फ्यूज़न का यहाँ नाम लिया गया है, नकल नहीं की गई। आपका दस्तावेज़ इस मशीन से कभी बाहर नहीं जाता।">KASOTI screens travel documents at border posts — the machine-readable zone against ICAO 9303, the printed page against that zone, and no verdict when a check did not run. This page is a working slice: check digits, a 10,000-row corpus, a PDF text layer, recorded verdicts. Printed page and fusion are named, not faked. Your document never leaves this machine.</p>
+
+    <div class="hero-cta">
+      <a class="btn primary" href="#lab" data-en="Check a document" data-hi="दस्तावेज़ जाँचें">Check a document</a>
+      <a class="btn" href="#pdf" data-en="Open a PDF" data-hi="PDF खोलें">Open a PDF</a>
+      <a class="btn" href="#corpus" data-en="See the corpus" data-hi="कॉर्पस देखें">See the corpus</a>
+    </div>
+
+    <!-- Judge brief. Three numbers read from data/evalrun.json at runtime, plus
+         one caveat. Em-dashes stand in if the record cannot be read; a zero here
+         would read as a measurement, so it is never rendered. -->
+    <div class="brief" id="hero-brief" data-loaded="0">
+      <div class="brief-item">
+        <b class="brief-num num" data-slot="docs">—</b>
+        <i data-en="documents checked" data-hi="दस्तावेज़ जाँचे गए">documents checked</i>
+      </div>
+      <div class="brief-item">
+        <b class="brief-num num" data-slot="caught">—</b>
+        <i data-en="forgeries caught, of those detectable" data-hi="पकड़ी गई नकलें, उनमें से जो पकड़ी जा सकती हैं">forgeries caught, of those detectable</i>
+      </div>
+      <a class="brief-item brief-link" href="#corpus">
+        <b class="brief-num num" data-slot="blind">—</b>
+        <i data-en="we cannot catch — TD1 has no composite digit to catch it with" data-hi="हम नहीं पकड़ सकते — TD1 में ऐसा कोई समग्र अंक ही नहीं है">we cannot catch — TD1 has no composite digit to catch it with</i>
+      </a>
+      <p class="brief-caveat" data-en="From one recorded evaluation run, shown above. This page runs offline in your own browser — nothing is uploaded." data-hi="एक ही दर्ज मूल्यांकन रन से, ऊपर दिखाया गया। यह पृष्ठ आपके अपने ब्राउज़र में ऑफ़लाइन चलता है — कुछ भी अपलोड नहीं होता।">From one recorded evaluation run, shown above. This page runs offline in your own browser — nothing is uploaded.</p>
+    </div>
+
+    </div>
+
+    <!-- The live hero instrument. Built by assets/js/herodemo.js from the real
+         parse()/allPassed() in ./mrz.js. Empty on purpose: JS fills it, and if
+         JS never runs this collapses to nothing rather than to a claim. -->
+    <div id="hero-instrument"></div>
+    </div>
+
+    <div class="ticker">
+      <div class="ticker-top"><span class="dot"></span><span data-en="Live session · computed in this tab" data-hi="लाइव सत्र · इसी टैब में गणना">Live session · computed in this tab</span></div>
+      <div class="ticker-body">
+        <div><b id="tk-docs" class="num">0</b><i data-en="zone analyses" data-hi="ज़ोन विश्लेषण">zone analyses</i></div>
+        <div><b id="tk-cd" class="num">0</b><i data-en="check digits verified" data-hi="चेक डिजिट सत्यापित">check digits verified</i></div>
+        <div><b id="tk-tamper" class="num">0</b><i data-en="tampered zones caught" data-hi="बदले गए क्षेत्र पकड़े">tampered zones caught</i></div>
+        <div><b id="tk-ms" class="num">0.0</b><i data-en="ms average" data-hi="ms औसत">ms average</i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== MRZ LAB ============================== -->
+<section class="section" id="lab">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><span class="secnum">01</span><span data-en="Live · ICAO 9303 part 4, 5, 6" data-hi="लाइव · ICAO 9303 भाग 4, 5, 6">Live · ICAO 9303 part 4, 5, 6</span></p>
+      <h2 data-en="The check digit, with the arithmetic shown" data-hi="चेक डिजिट, गणना के साथ">The check digit, with the arithmetic shown</h2>
+      <p class="lede" data-en="Every check digit in a machine-readable zone is a weighted sum mod 10. Weights repeat 7, 3, 1. Characters map 0–9 to 0–9, A–Z to 10–35, and the filler &lt; to 0. Paste any zone and watch it resolve." data-hi="मशीन-पठन क्षेत्र का हर चेक डिजिट भार-गुणित योग mod 10 है। भार 7, 3, 1 दोहराते हैं। अक्षर 0–9 से 0–9, A–Z से 10–35, और फिलर &lt; से 0। कोई भी क्षेत्र चिपकाएँ और गणना देखें।">Every check digit in a machine-readable zone is a weighted sum mod 10. Weights repeat 7, 3, 1. Characters map 0–9 to 0–9, A–Z to 10–35, and the filler &lt; to 0. Paste any zone and watch it resolve.</p>
+    </div>
+
+    <div class="mrz-lab">
+      <div>
+        <div class="card">
+          <h4 data-en="Machine-readable zone" data-hi="मशीन-पठन क्षेत्र">Machine-readable zone</h4>
+          <label class="mono" for="mrz-input" style="font-size:.72rem;color:var(--ink-3);display:block;margin-bottom:7px" data-en="Paste or type one or more lines" data-hi="एक या अधिक पंक्तियाँ चिपकाएँ या टाइप करें">Paste or type one or more lines</label>
+          <textarea class="mrz" id="mrz-input" spellcheck="false" autocomplete="off" placeholder="AB12345671IND9006083M3106073AB1234567&lt;&lt;&lt;&lt;&lt;16&#10;SHARMA&lt;&lt;RAMESH&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;"></textarea>
+          <!-- Framing only. #mrz-samples itself, and every .sampletag inside it,
+               belong to main.js — this block sits above it and renders nothing. -->
+          <div class="ladder">
+            <p class="ladder-title" data-en="Try to fool it — five rungs" data-hi="इसे धोखा दें — पाँच सीढ़ियाँ">Try to fool it — five rungs</p>
+            <p class="ladder-note" data-en="Every chip is a real specimen, assembled from fields rather than typed by hand. Work down the ladder: the first four are caught, and the fifth is the case we cannot catch. Press all five." data-hi="हर चिप एक असली नमूना है, जो हाथ से लिखने के बजाय फ़ील्ड से जोड़ा गया है। सीढ़ियों से चढ़ें: पहली चार पकड़ी जाती हैं, और पाँचवीं वह है जिसे हम नहीं पकड़ सकते। पाँचों को दबाकर देखें।">Every chip is a real specimen, assembled from fields rather than typed by hand. Work down the ladder: the first four are caught, and the fifth is the case we cannot catch. Press all five.</p>
+          </div>
+          <div class="samples" id="mrz-samples"></div>
+          <p style="font-size:.8rem;color:var(--ink-3);margin:14px 0 0" data-en="A TD3 zone is 2 lines of 44 characters. A TD1 zone is 3 lines of 30. Anything else is reported as unrecognised rather than guessed at." data-hi="TD3 क्षेत्र 44 अक्षरों की 2 पंक्तियाँ होता है। TD1 क्षेत्र 30 अक्षरों की 3 पंक्तियाँ। अन्य को अनुमान लगाने के बजाय “अपरिचित” बताया जाता है।">A TD3 zone is 2 lines of 44 characters. A TD1 zone is 3 lines of 30. Anything else is reported as unrecognised rather than guessed at.</p>
+        </div>
+
+        <div class="card mt" id="corpus">
+          <h4><span class="secnum">02</span><span data-en="10,000 mutated documents" data-hi="10,000 उत्परिवर्तित दस्तावेज़">10,000 mutated documents</span></h4>
+          <p style="font-size:.86rem;color:var(--ink-2)" data-en="This is the corpus from our evaluation run, shipped as data. Your browser re-checks all 10,000 rows with the engine above and compares the outcome against what the JVM harness recorded for each row. If every row matches, the port is correct." data-hi="यह हमारे मूल्यांकन रन का कॉर्पस है, डेटा के रूप में। आपका ब्राउज़र ऊपर के इंजन से सभी 10,000 पंक्तियाँ दोबारा जाँचता है और परिणाम की तुलना JVM हार्नेस द्वारा दर्ज की गई पंक्ति-वार रिकॉर्ड से करता है। यदि हर पंक्ति मेल खाती है, तो पोर्ट सही है।">This is the corpus from our evaluation run, shipped as data. Your browser re-checks all 10,000 rows with the engine above and compares the outcome against what the JVM harness recorded for each row. If every row matches, the port is correct.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn primary" id="corpus-run" type="button" data-en="Run 10,000 rows" data-hi="10,000 पंक्तियाँ चलाएँ">Run 10,000 rows</button>
+            <span class="mono" id="corpus-status" style="font-size:.75rem;color:var(--ink-3)"></span>
+          </div>
+          <div class="progress" id="corpus-progress" style="display:none"><i id="corpus-progress-bar"></i></div>
+          <div id="corpus-results" class="hidden" style="margin-top:18px">
+            <div class="statgrid" id="corpus-stats"></div>
+            <div id="corpus-selfcheck" style="margin-top:16px"></div>
+            <h4 class="mt" data-en="Catch rate by mutation" data-hi="उत्परिवर्तन अनुसार पकड़ दर">Catch rate by mutation</h4>
+            <div class="tbl-scroll"><table class="data" id="corpus-table"></table></div>
+            <h4 class="mt" data-en="Why the blind rows are blind" data-hi="अंधी पंक्तियाँ अंधी क्यों हैं">Why the blind rows are blind</h4>
+            <div id="corpus-blind" class="card tight" style="font-size:.86rem;color:var(--ink-2)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" id="mrz-out">
+          <div class="bigverdict">
+            <span class="lbl" data-en="Result" data-hi="परिणाम">Result</span>
+            <span id="mrz-verdict"><span class="pill NONE" data-en="waiting" data-hi="प्रतीक्षा">waiting</span></span>
+          </div>
+          <div id="mrz-tape" class="tape"></div>
+          <h4 data-en="Extracted fields" data-hi="निकाले गए फ़ील्ड">Extracted fields</h4>
+          <div class="fields" id="mrz-fields"></div>
+          <h4 class="mt" data-en="Check digits" data-hi="चेक डिजिट">Check digits</h4>
+          <div id="mrz-checks"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PDF ============================== -->
+<section class="section" id="pdf">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><span class="secnum">03</span><span data-en="Runs entirely on this page" data-hi="पूरी तरह इसी पृष्ठ पर चलता है">Runs entirely on this page</span></p>
+      <h2 data-en="Drop a PDF. Watch what we can and cannot tell." data-hi="PDF छोड़ें। देखें हम क्या और क्या नहीं बता सकते।">Drop a PDF. Watch what we can and cannot tell.</h2>
+      <p class="lede" data-en="The file is read with a PDF parser inside your browser. No upload, no server, no request carrying your document. We pull the text layer, look for a machine-readable zone, run the same check digits, and report the document metadata — which on its own is weak evidence, and we say so." data-hi="फ़ाइल आपके ब्राउज़र में ही PDF पार्सर से पढ़ी जाती है। कोई अपलोड नहीं, कोई सर्वर नहीं, आपके दस्तावेज़ को ले जाने वाला कोई अनुरोध नहीं। हम टेक्स्ट लेयर निकालते हैं, मशीन-पठन क्षेत्र खोजते हैं, वही चेक डिजिट चलाते हैं, और दस्तावेज़ मेटाडेटा दिखाते हैं — जो अपने आप में कमज़ोर साक्ष्य है, और हम यह भी बताते हैं।">The file is read with a PDF parser inside your browser. No upload, no server, no request carrying your document. We pull the text layer, look for a machine-readable zone, run the same check digits, and report the document metadata — which on its own is weak evidence, and we say so.</p>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a PDF file">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+          <div class="big" data-en="Choose a PDF, or drop one here" data-hi="PDF चुनें, या यहाँ छोड़ें">Choose a PDF, or drop one here</div>
+          <div class="sub" data-en="PDF only · 4 MB maximum · nothing is uploaded" data-hi="केवल PDF · अधिकतम 4 MB · कुछ भी अपलोड नहीं">PDF only · 4 MB maximum · nothing is uploaded</div>
+        </div>
+        <input type="file" id="file-input" accept="application/pdf,.pdf" class="hidden">
+
+        <div class="card mt">
+          <h4 data-en="No passport handy?" data-hi="पासपोर्ट नहीं है?">No passport handy?</h4>
+          <p style="font-size:.86rem;color:var(--ink-2);margin-bottom:12px" data-en="Builds a PDF in this tab, on the spot, with a real MRZ inside — one valid, one with a single digit altered. Nothing is fetched." data-hi="इसी टैब में, तुरंत, एक असली MRZ वाला PDF बनाता है — एक सही, एक में एक अंक बदला हुआ। कुछ भी फ़ेच नहीं होता।">Builds a PDF in this tab, on the spot, with a real MRZ inside — one valid, one with a single digit altered. Nothing is fetched.</p>
+          <button class="btn sm" id="pdf-sample" type="button" data-en="Generate a specimen" data-hi="एक नमूना बनाएँ">Generate a specimen</button>
+        </div>
+
+        <div class="filelist" id="filelist"></div>
+      </div>
+
+      <div id="pdf-results" class="hidden"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== VERDICTS ============================== -->
+<section class="section" id="verdicts">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><span class="secnum">04</span><span data-en="Real engine output, replayed" data-hi="वास्तविक इंजन आउटपुट, पुनः प्रदर्शित">Real engine output, replayed</span></p>
+      <h2 data-en="What the system actually said" data-hi="सिस्टम ने वास्तव में क्या कहा">What the system actually said</h2>
+      <p class="lede" data-en="These are not mock-ups. Each panel is the verbatim console transcript of the real screening engine, captured by a script that runs the engine and fails loudly if its verdict changes. This page replays the output; it does not re-run fusion in the browser." data-hi="ये मॉक-अप नहीं हैं। प्रत्येक पैनल असली स्क्रीनिंग इंजन का शाब्दिक कंसोल ट्रांसक्रिप्ट है, जिसे एक स्क्रिप्ट ने इंजन चलाकर लिया है और निर्णय बदलने पर ज़ोर से रुक जाता है। यह पृष्ठ आउटपुट दोहराता है; यह ब्राउज़र में फ्यूज़न दोबारा नहीं चलाता।">These are not mock-ups. Each panel is the verbatim console transcript of the real screening engine, captured by a script that runs the engine and fails loudly if its verdict changes. This page replays the output; it does not re-run fusion in the browser.</p>
+    </div>
+
+    <div class="notice plain" id="green-note"></div>
+    <div class="scen" id="scenarios"></div>
+  </div>
+</section>
+
+<!-- ============================== MEASURED ============================== -->
+<section class="section" id="sec-measured">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><span class="secnum">05</span><span data-en="Every number below came from one command" data-hi="नीचे का हर अंक एक ही कमांड से आया">Every number below came from one command</span></p>
+      <h2 data-en="The measurement record" data-hi="माप रिकॉर्ड">The measurement record</h2>
+      <p class="lede" data-en="We do not publish a number we have not produced. Here is the whole record from a single evaluation run, including the parts that did not pass and the thresholds that are still untuned." data-hi="हम वह अंक प्रकाशित नहीं करते जो हमने उत्पन्न नहीं किया। यहाँ एक ही मूल्यांकन रन का पूरा रिकॉर्ड है — जिसमें जो हिस्से पास नहीं हुए और जो थ्रेशहोल्ड अब भी अन-ट्यून्ड हैं, वे भी शामिल हैं।">We do not publish a number we have not produced. Here is the whole record from a single evaluation run, including the parts that did not pass and the thresholds that are still untuned.</p>
+    </div>
+    <div id="measured"></div>
+  </div>
+</section>
+
+<!-- ============================== LIMITS ============================== -->
+<section class="section" id="sec-limits">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow"><span class="secnum">06</span><span data-en="The part most demos hide" data-hi="वह हिस्सा जो अधिकांश डेमो छिपाते हैं">The part most demos hide</span></p>
+      <h2 data-en="What this project has not done" data-hi="यह परियोजना क्या नहीं कर पायी">What this project has not done</h2>
+      <p class="lede" data-en="Four things are unfinished. None of them are hidden in this build, and none of them are worked around with a plausible-looking number." data-hi="चार काम अधूरे हैं। इनमें से कोई भी इस बिल्ड में छिपा नहीं है, और किसी को भी आँखों को ठीक लगने वाले अंक से नहीं सँवारा गया है।">Four things are unfinished. None of them are hidden in this build, and none of them are worked around with a plausible-looking number.</p>
+    </div>
+    <div class="limits" id="limits"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <strong style="color:var(--ink)">KASOTI</strong> — offline document screening for border posts.
+      <div class="mono mt" id="foot-provenance"></div>
+    </div>
+    <div style="margin-left:auto" class="mono">
+      Built to fail closed.<br>
+      No account, no server, no telemetry.
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

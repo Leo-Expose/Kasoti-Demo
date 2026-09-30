@@ -1,0 +1,489 @@
+{
+ "runId": "eval-20260930-smoke-653a",
+ "fusionRuleVersion": "fusion-v1",
+ "thresholdVersion": "v1 (run console)",
+ "note": "Replayed from the real :app-desktop console by tools/capture_real_output.py. The browser does not re-run fusion; these are its actual outputs.",
+ "scenarios": [
+  {
+   "layers": [
+    {
+     "layer": "image",
+     "state": "RAN",
+     "detail": "640x400 gray, mean 0.825"
+    },
+    {
+     "layer": "quality",
+     "state": "RAN",
+     "detail": "brightness 210.278 within [40.000, 225.000]"
+    },
+    {
+     "layer": "quality.appearance",
+     "state": "UNAVAILABLE",
+     "detail": "blur/glare/pose need the capture pipeline; a file import cannot attest them"
+    },
+    {
+     "layer": "math",
+     "state": "RAN",
+     "detail": "TD3; check digit failure in [COMPOSITE, DOCUMENT_NUMBER]"
+    },
+    {
+     "layer": "qr",
+     "state": "SKIPPED",
+     "detail": "no QR supplied"
+    },
+    {
+     "layer": "macro",
+     "state": "RAN",
+     "detail": "photo=DYESUB(margin=1.000, model=DYESUB) text=SCREEN(margin=1.000, model=SCREEN) clip=true (under the margin floor a patch reads UNKNOWN, not its best guess)"
+    },
+    {
+     "layer": "face",
+     "state": "UNAVAILABLE",
+     "detail": "no embedding interpreter bound (M2)"
+    },
+    {
+     "layer": "diary",
+     "state": "UNAVAILABLE",
+     "detail": "dev.kasoti.diary not yet in :core (M2)"
+    }
+   ],
+   "findings": [
+    {
+     "severity": "RED",
+     "code": "R_MATH_01",
+     "evidence": "mrz/COMPOSITE#check-dicheck",
+     "detail": "digit failed for COMPOSITE"
+    },
+    {
+     "severity": "RED",
+     "code": "R_MATH_01",
+     "evidence": "mrz/DOCUMENT_NUMBER#chcheck",
+     "detail": "digit failed for DOCUMENT_NUMBER"
+    },
+    {
+     "severity": "RED",
+     "code": "R_PROC_01",
+     "evidence": "macro/text-zone#SCREENtext-zone",
+     "detail": "reads SCREEN at margin 1.000 while a physical document was claimed"
+    },
+    {
+     "severity": "RED",
+     "code": "R_PROC_02",
+     "evidence": "macro/photo-zone,macrophoto",
+     "detail": "zone DYESUB at 1.000 vs text zone SCREEN at 1.000; both above the RED margin 0.350"
+    }
+   ],
+   "warnings": [
+    "macro read from the frame; run `kasoti macro` to collect labelled patches for training",
+    "hard RED: R_MATH_01 (first hit)",
+    "corroborating: R_MATH_01 at mrz/DOCUMENT_NUMBER#check-digit",
+    "corroborating: R_PROC_01 at macro/text-zone#SCREEN@1.000",
+    "corroborating: R_PROC_02 at macro/photo-zone,macro/text-zone#MISMATCH",
+    "unresolved check: evidence/layers#face=ABSENT",
+    "unresolved check: evidence/layers#diary=ABSENT"
+   ],
+   "verdict": "RED",
+   "action": "SECONDARY REVIEW REQUIRED before any decision",
+   "en": "Machine-readable zone check digit failed",
+   "hi": "मशीन-पठन क्षेत्र की जाँच अंक विफल",
+   "auditTip": "ef474266aae8255008130d7d321b99ac950e512d61f80bc62424da570f586e58",
+   "fusionRuleVersion": "fusion-v1",
+   "thresholdVersion": "v1 (run console)",
+   "id": "red-check-digit",
+   "title": "Altered passport, arithmetic still checks out — no",
+   "titleHi": "बदला गया पासपोर्ट, गणित फिर भी सही — नहीं",
+   "blurb": "One digit changed in the document number. The 7-3-1 check digit and the composite both catch it.",
+   "blurbHi": "दस्तावेज़ संख्या में एक अंक बदला गया। 7-3-1 चेक डिजिट और कॉम्पोज़िट दोनों पकड़ लेते हैं।",
+   "track": "PAPER_ID",
+   "transcript": "data/transcripts/red-check-digit.txt",
+   "sidecar": {
+    "mrz": [
+     "AB12345670IND9006083M3106073AB1234567<<<<<16",
+     "SHARMA<<RAMESH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    ],
+    "printName": "SHARMA RAMESH",
+    "printDob": "1990-06-08",
+    "issueDate": "2021-06-08",
+    "expiry": "2031-06-07",
+    "photoZone": {
+     "x": 0.14,
+     "y": 0.18,
+     "w": 0.2,
+     "h": 0.32
+    },
+    "textZone": {
+     "x": 0.05,
+     "y": 0.72,
+     "w": 0.9,
+     "h": 0.12
+    },
+    "presentation": "PHYSICAL",
+    "trust": "VERIFY"
+   }
+  },
+  {
+   "layers": [
+    {
+     "layer": "image",
+     "state": "RAN",
+     "detail": "640x400 gray, mean 0.825"
+    },
+    {
+     "layer": "quality",
+     "state": "RAN",
+     "detail": "brightness 210.278 within [40.000, 225.000]"
+    },
+    {
+     "layer": "quality.appearance",
+     "state": "UNAVAILABLE",
+     "detail": "blur/glare/pose need the capture pipeline; a file import cannot attest them"
+    },
+    {
+     "layer": "math",
+     "state": "RAN",
+     "detail": "TD3; all check digits pass"
+    },
+    {
+     "layer": "qr",
+     "state": "SKIPPED",
+     "detail": "no QR supplied"
+    },
+    {
+     "layer": "macro",
+     "state": "SKIPPED",
+     "detail": "no photoZone/textZone in the sidecar"
+    },
+    {
+     "layer": "face",
+     "state": "UNAVAILABLE",
+     "detail": "no embedding interpreter bound (M2)"
+    },
+    {
+     "layer": "diary",
+     "state": "UNAVAILABLE",
+     "detail": "dev.kasoti.diary not yet in :core (M2)"
+    }
+   ],
+   "findings": [
+    {
+     "severity": "AMBER",
+     "code": "A_MISSING_LAYER",
+     "evidence": "evidence/layers#face=Arequired",
+     "detail": "check face did not produce a usable result (ABSENT); it is not treated as a pass"
+    },
+    {
+     "severity": "AMBER",
+     "code": "A_MISSING_LAYER",
+     "evidence": "evidence/layers#diary=required",
+     "detail": "check diary did not produce a usable result (ABSENT); it is not treated as a pass"
+    },
+    {
+     "severity": "INFO",
+     "code": "M_OK",
+     "evidence": "mrz/checks#all-pass",
+     "detail": "every check digit agreed"
+    }
+   ],
+   "warnings": [
+    "secondary inspection: A_MISSING_LAYER@evidence/layers#face=ABSENT, A_MISSING_LAYER@evidence/layers#diary=ABSENT"
+   ],
+   "verdict": "AMBER",
+   "action": "SECONDARY REVIEW REQUIRED before any decision",
+   "en": "Math checks passed",
+   "hi": "गणित जाँच सफल",
+   "auditTip": "fce28d1b7ce36e9797c7344a4a2755d942eff9a397a98489887887959de736b4",
+   "fusionRuleVersion": "fusion-v1",
+   "thresholdVersion": "v1 (run console)",
+   "id": "amber-missing-layers",
+   "title": "Genuine document, two layers never ran",
+   "titleHi": "असली दस्तावेज़, दो परतें चली ही नहीं",
+   "blurb": "Every check digit passes. The face and diary layers produced nothing, so the verdict is AMBER, not GREEN.",
+   "blurbHi": "हर चेक डिजिट सही है। फेस और डायरी परतों ने कुछ नहीं दिया, इसलिए निर्णय AMBER है, GREEN नहीं।",
+   "track": "PAPER_ID",
+   "transcript": "data/transcripts/amber-missing-layers.txt",
+   "sidecar": {
+    "mrz": [
+     "AB12345671IND9006083M3106073AB1234567<<<<<16",
+     "SHARMA<<RAMESH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    ],
+    "printName": "SHARMA RAMESH",
+    "printDob": "1990-06-08",
+    "issueDate": "2021-06-08",
+    "expiry": "2031-06-07",
+    "presentation": "PHYSICAL",
+    "trust": "VERIFY"
+   }
+  },
+  {
+   "layers": [
+    {
+     "layer": "image",
+     "state": "RAN",
+     "detail": "640x400 gray, mean 0.825"
+    },
+    {
+     "layer": "quality",
+     "state": "RAN",
+     "detail": "brightness 210.278 within [40.000, 225.000]"
+    },
+    {
+     "layer": "quality.appearance",
+     "state": "UNAVAILABLE",
+     "detail": "blur/glare/pose need the capture pipeline; a file import cannot attest them"
+    },
+    {
+     "layer": "math",
+     "state": "RAN",
+     "detail": "TD3; all check digits pass"
+    },
+    {
+     "layer": "qr",
+     "state": "SKIPPED",
+     "detail": "no QR supplied"
+    },
+    {
+     "layer": "macro",
+     "state": "SKIPPED",
+     "detail": "no photoZone/textZone in the sidecar"
+    },
+    {
+     "layer": "face",
+     "state": "UNAVAILABLE",
+     "detail": "no embedding interpreter bound (M2)"
+    },
+    {
+     "layer": "diary",
+     "state": "UNAVAILABLE",
+     "detail": "dev.kasoti.diary not yet in :core (M2)"
+    }
+   ],
+   "findings": [
+    {
+     "severity": "GREY",
+     "code": "G_NOCLIP",
+     "evidence": "capture/macro#macro/ABthe",
+     "detail": "macro clip is required for this track and is missing"
+    }
+   ],
+   "warnings": [
+    "required capture missing: G_NOCLIP -> retake"
+   ],
+   "verdict": "GREY",
+   "action": "RETAKE — this is not an accusation",
+   "en": "Macro clip is required for this document",
+   "hi": "इस दस्तावेज़ के लिए मैक्रो क्लिप आवश्यक है",
+   "auditTip": "0594bf9ace70035e1b88a6cce8025866ec2569e49e5100286837568417e24b0e",
+   "fusionRuleVersion": "fusion-v1",
+   "thresholdVersion": "v1 (run console)",
+   "id": "grey-missing-capture",
+   "title": "Passport presented without the macro clip",
+   "titleHi": "मैक्रो क्लिप के बिना पासपोर्ट",
+   "blurb": "The check digits are fine. We still refuse to decide, because a required capture is missing.",
+   "blurbHi": "चेक डिजिट सही हैं। फिर भी हम निर्णय नहीं लेते, क्योंकि एक आवश्यक कैप्चर नहीं है।",
+   "track": "PASSPORT",
+   "transcript": "data/transcripts/grey-missing-capture.txt",
+   "sidecar": {
+    "mrz": [
+     "AB12345671IND9006083M3106073AB1234567<<<<<16",
+     "SHARMA<<RAMESH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    ],
+    "printName": "SHARMA RAMESH",
+    "printDob": "1990-06-08",
+    "issueDate": "2021-06-08",
+    "expiry": "2031-06-07",
+    "presentation": "PHYSICAL",
+    "trust": "VERIFY"
+   }
+  },
+  {
+   "layers": [
+    {
+     "layer": "image",
+     "state": "RAN",
+     "detail": "640x400 gray, mean 0.825"
+    },
+    {
+     "layer": "quality",
+     "state": "RAN",
+     "detail": "brightness 210.278 within [40.000, 225.000]"
+    },
+    {
+     "layer": "quality.appearance",
+     "state": "UNAVAILABLE",
+     "detail": "blur/glare/pose need the capture pipeline; a file import cannot attest them"
+    },
+    {
+     "layer": "math",
+     "state": "RAN",
+     "detail": "TD3; all check digits pass"
+    },
+    {
+     "layer": "qr",
+     "state": "SKIPPED",
+     "detail": "no QR supplied"
+    },
+    {
+     "layer": "macro",
+     "state": "SKIPPED",
+     "detail": "no photoZone/textZone in the sidecar"
+    },
+    {
+     "layer": "face",
+     "state": "UNAVAILABLE",
+     "detail": "no embedding interpreter bound (M2)"
+    },
+    {
+     "layer": "diary",
+     "state": "UNAVAILABLE",
+     "detail": "dev.kasoti.diary not yet in :core (M2)"
+    }
+   ],
+   "findings": [
+    {
+     "severity": "AMBER",
+     "code": "SYS_UNSUPPORTED_TRACK",
+     "evidence": "case/track#unknown",
+     "detail": "the document family is not recognised, so the checks that matter cannot be named"
+    },
+    {
+     "severity": "INFO",
+     "code": "M_OK",
+     "evidence": "mrz/checks#all-pass",
+     "detail": "every check digit agreed"
+    }
+   ],
+   "warnings": [
+    "secondary inspection: SYS_UNSUPPORTED_TRACK@case/track#unknown"
+   ],
+   "verdict": "AMBER",
+   "action": "SECONDARY REVIEW REQUIRED before any decision",
+   "en": "Math checks passed",
+   "hi": "गणित जाँच सफल",
+   "auditTip": "18a928a22a370efc54e11b5f7e6dfc25767988b77d52a0aa2c7f8aa4775c57a4",
+   "fusionRuleVersion": "fusion-v1",
+   "thresholdVersion": "v1 (run console)",
+   "id": "amber-unknown-track",
+   "title": "A document family we do not support",
+   "titleHi": "एक असमर्थित दस्तावेज़ प्रकार",
+   "blurb": "We do not know which checks are load-bearing, so we escalate instead of guessing.",
+   "blurbHi": "हमें नहीं पता कि कौन-से जाँच महत्वपूर्ण हैं, इसलिए अनुमान लगाने के बजाय बढ़ा देते हैं।",
+   "track": "UNKNOWN",
+   "transcript": "data/transcripts/amber-unknown-track.txt",
+   "sidecar": {
+    "mrz": [
+     "AB12345671IND9006083M3106073AB1234567<<<<<16",
+     "SHARMA<<RAMESH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    ],
+    "printName": "SHARMA RAMESH",
+    "printDob": "1990-06-08",
+    "issueDate": "2021-06-08",
+    "expiry": "2031-06-07",
+    "presentation": "PHYSICAL",
+    "trust": "VERIFY"
+   }
+  },
+  {
+   "layers": [
+    {
+     "layer": "image",
+     "state": "RAN",
+     "detail": "640x400 gray, mean 0.825"
+    },
+    {
+     "layer": "quality",
+     "state": "RAN",
+     "detail": "brightness 210.278 within [40.000, 225.000]"
+    },
+    {
+     "layer": "quality.appearance",
+     "state": "UNAVAILABLE",
+     "detail": "blur/glare/pose need the capture pipeline; a file import cannot attest them"
+    },
+    {
+     "layer": "math",
+     "state": "RAN",
+     "detail": "TD3; all check digits pass"
+    },
+    {
+     "layer": "qr",
+     "state": "SKIPPED",
+     "detail": "no QR supplied"
+    },
+    {
+     "layer": "macro",
+     "state": "RAN",
+     "detail": "photo=DYESUB(margin=1.000, model=DYESUB) text=SCREEN(margin=1.000, model=SCREEN) clip=true (under the margin floor a patch reads UNKNOWN, not its best guess)"
+    },
+    {
+     "layer": "face",
+     "state": "UNAVAILABLE",
+     "detail": "no embedding interpreter bound (M2)"
+    },
+    {
+     "layer": "diary",
+     "state": "UNAVAILABLE",
+     "detail": "dev.kasoti.diary not yet in :core (M2)"
+    }
+   ],
+   "findings": [
+    {
+     "severity": "RED",
+     "code": "R_PROC_02",
+     "evidence": "macro/photo-zone,macrophoto",
+     "detail": "zone DYESUB at 1.000 vs text zone SCREEN at 1.000; both above the RED margin 0.350"
+    },
+    {
+     "severity": "INFO",
+     "code": "M_OK",
+     "evidence": "mrz/checks#all-pass",
+     "detail": "every check digit agreed"
+    }
+   ],
+   "warnings": [
+    "macro read from the frame; run `kasoti macro` to collect labelled patches for training",
+    "hard RED: R_PROC_02 (first hit)",
+    "unresolved check: evidence/layers#chip=ABSENT",
+    "unresolved check: evidence/layers#face=ABSENT",
+    "unresolved check: evidence/layers#diary=ABSENT"
+   ],
+   "verdict": "RED",
+   "action": "SECONDARY REVIEW REQUIRED before any decision",
+   "en": "Math checks passed",
+   "hi": "गणित जाँच सफल",
+   "auditTip": "29a4b0a0433dc4aa540a31fb5d479bf698955f02079df95666f0aaa4b8efcaf1",
+   "fusionRuleVersion": "fusion-v1",
+   "thresholdVersion": "v1 (run console)",
+   "id": "red-screen-presentation",
+   "title": "A phone showing a passport",
+   "titleHi": "पासपोर्ट दिखाने वाला फ़ोन",
+   "blurb": "Presented as a physical document; the macro layer disagrees. Hard RED before any secondary check.",
+   "blurbHi": "भौतिक दस्तावेज़ बताया गया; मैक्रो परत असहमत है। किसी भी द्वितीय जाँच से पहले सीधा RED।",
+   "track": "PASSPORT",
+   "transcript": "data/transcripts/red-screen-presentation.txt",
+   "sidecar": {
+    "mrz": [
+     "AB12345671IND9006083M3106073AB1234567<<<<<16",
+     "SHARMA<<RAMESH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    ],
+    "printName": "SHARMA RAMESH",
+    "printDob": "1990-06-08",
+    "issueDate": "2021-06-08",
+    "expiry": "2031-06-07",
+    "photoZone": {
+     "x": 0.14,
+     "y": 0.18,
+     "w": 0.2,
+     "h": 0.32
+    },
+    "textZone": {
+     "x": 0.05,
+     "y": 0.72,
+     "w": 0.9,
+     "h": 0.12
+    },
+    "presentation": "SCREEN",
+    "trust": "VERIFY"
+   }
+  }
+ ]
+}

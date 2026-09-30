@@ -1,0 +1,48 @@
+  · macro model: svm_print_v1 @ train-20260929T200155Z-SYNTHETIC-s20260932 — SYNTHETIC, trained on generated textures, never gate-eligible (SYNTHETIC: eval/tools/synth_macros.py@2026101 (48 docs/class, 6 crops/doc) — NOT D-MACRO)
+  · SYNTHETIC MACRO MODEL — trained on generated textures by eval/tools/synth_macros.py. It is not evidence about any print process and is not the D-MACRO gate (SPEC §7).
+
+=== KASOTI screening RED =====================================================
+  case            case_01M3RSCVAGC0JD31Y7M7TYVTWY
+  track           PAPER_ID
+  image           specimen.png
+  auditTip        ef474266aae8255008130d7d321b99ac950e512d61f80bc62424da570f586e58
+  clock           system clock: 2026-09-30T09:12:42.882Z (skew against the reference post is flagged at sync — SYNC.md §2)
+
+  LAYERS
+  layer               state         detail
+  image               RAN           640x400 gray, mean 0.825
+  quality             RAN           brightness 210.278 within [40.000, 225.000]
+  quality.appearance  UNAVAILABLE   blur/glare/pose need the capture pipeline; a file import cannot attest them
+  math                RAN           TD3; check digit failure in [COMPOSITE, DOCUMENT_NUMBER]
+  qr                  SKIPPED       no QR supplied
+  macro               RAN           photo=DYESUB(margin=1.000, model=DYESUB) text=SCREEN(margin=1.000, model=SCREEN) clip=true (under the margin floor a patch reads UNKNOWN, not its best guess)
+  face                UNAVAILABLE   no embedding interpreter bound (M2)
+  diary               UNAVAILABLE   dev.kasoti.diary not yet in :core (M2)
+
+  FINDINGS (4)
+  severity  code       evidence              detail
+  RED       R_MATH_01  mrz/COMPOSITE#check-dicheck digit failed for COMPOSITE
+  RED       R_MATH_01  mrz/DOCUMENT_NUMBER#chcheck digit failed for DOCUMENT_NUMBER
+  RED       R_PROC_01  macro/text-zone#SCREENtext-zone reads SCREEN at margin 1.000 while a physical document was claimed
+  RED       R_PROC_02  macro/photo-zone,macrophoto zone DYESUB at 1.000 vs text zone SCREEN at 1.000; both above the RED margin 0.350
+
+  VERDICT : RED
+  ACTION  : SECONDARY REVIEW REQUIRED before any decision
+  EN      : Machine-readable zone check digit failed
+  HI      : मशीन-पठन क्षेत्र की जाँच अंक विफल
+
+  POLICY
+  thresholds      v1 (run console)
+  fusion rules    fusion-v1
+
+  WARNINGS
+    ! macro read from the frame; run `kasoti macro` to collect labelled patches for training
+    ! hard RED: R_MATH_01 (first hit)
+    ! corroborating: R_MATH_01 at mrz/DOCUMENT_NUMBER#check-digit
+    ! corroborating: R_PROC_01 at macro/text-zone#SCREEN@1.000
+    ! corroborating: R_PROC_02 at macro/photo-zone,macro/text-zone#MISMATCH
+    ! unresolved check: evidence/layers#face=ABSENT
+    ! unresolved check: evidence/layers#diary=ABSENT
+
+  · DEMO RUN — the decision is stamped demoMode and is not evidence of anything (invariant I7)
+  => screened case_01M3RSCVAGC0JD31Y7M7TYVTWY: RED

@@ -1,0 +1,6 @@
+# Nothing generated is committed. This is a static site with no build step, so
+# there is no dist/ to ignore — the guard is here so that a future
+# `vercel build` artefact never lands in a commit by accident.
+node_modules/
+.vercel/
+.DS_Store

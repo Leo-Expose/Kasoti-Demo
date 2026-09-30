@@ -1,0 +1,582 @@
+{
+ "runId": "eval-20260930-smoke-653a",
+ "suite": "smoke",
+ "commit": "58b8656",
+ "startedAtUtc": "2026-09-30T02:06:44.720342126Z",
+ "finishedAtUtc": "2026-09-30T02:06:48.973200345Z",
+ "split": "FACILITATOR_MIN_GROUPS+FACILITATOR_WINDOW_DAYS+T_ALIAS_HI+T_FACE_GREEN+T_FACE_RED+T_WL+VMAX",
+ "counters": {
+  "mrz.corpus.rows": 10000,
+  "mrz.mutate_catch.detectable_caught": 6725,
+  "mrz.mutate_catch.detectable_total": 6725,
+  "mrz.mutate_catch.structurally_blind": 746,
+  "mrz.valid.rows": 2529,
+  "mrz.td3.rows": 5000,
+  "mrz.td1.rows": 5000,
+  "mrz.distinct_expected_fields": 7,
+  "qr.corpus.size": 347,
+  "qr.stale_key_rows": 2,
+  "qr.rejected_rows": 245,
+  "qr.unsigned_rows": 30,
+  "diary.scenarios.total": 40,
+  "diary.scenarios.passed": 40,
+  "diary.retrieval.gallery_size": 10001,
+  "latency.iterations": 60,
+  "latency.warmup_iterations": 5
+ },
+ "measures": {
+  "mrz.mutate_catch.detectable_pct": 1,
+  "mrz.mutate_catch.structurally_blind_pct": 0.0746,
+  "mrz.valid.false_positive_pct": 0,
+  "qr.tamper_catch_pct": 1,
+  "qr.accept_pct": 1,
+  "qr.crosscheck_catch_pct": 1,
+  "qr.stale_key_detected_pct": 1,
+  "diary.scripted_pass_pct": 100,
+  "diary.benign_pass_pct": 100,
+  "diary.retrieval.rank1_pct": 100,
+  "diary.retrieval.actionable_pct": 100,
+  "diary.retrieval.median_rank": 1,
+  "unit_parity.checks": 19,
+  "unit_parity.mismatches": 0,
+  "unit_parity.tolerance": 1e-06,
+  "latency.mrz.parse.median_ms": 0.049747,
+  "latency.mrz.parse.p95_ms": 0.09668969999999998,
+  "latency.macro.spectrum.median_ms": 5.412196,
+  "latency.macro.spectrum.p95_ms": 6.6145308499999995,
+  "latency.macro.lbp.median_ms": 1.2841285,
+  "latency.macro.lbp.p95_ms": 4.734307299999999,
+  "latency.macro.edges.median_ms": 0.2922475,
+  "latency.macro.edges.p95_ms": 0.8167219499999999,
+  "latency.face.cosine.median_ms": 0.013838,
+  "latency.face.cosine.p95_ms": 0.020532949999999998,
+  "latency.qr.verify.median_ms": 0.27610250000000003,
+  "latency.qr.verify.p95_ms": 0.41806530000000003,
+  "latency.total_p95_ms": 12.700848049999998,
+  "latency.jvm_max_heap_mb": 7932
+ },
+ "buckets": {
+  "MRZ catch rate by mutation": {
+   "NONE/rows": 2529,
+   "NONE/detectable": 0,
+   "NONE/caught": 0,
+   "NONE/catch %": 0,
+   "NONE/blind rows": 2529,
+   "CHECK_DIGIT/rows": 1363,
+   "CHECK_DIGIT/detectable": 1363,
+   "CHECK_DIGIT/caught": 1363,
+   "CHECK_DIGIT/catch %": 100,
+   "CHECK_DIGIT/blind rows": 0,
+   "FORMAT_BREAK/rows": 1383,
+   "FORMAT_BREAK/detectable": 1383,
+   "FORMAT_BREAK/caught": 1383,
+   "FORMAT_BREAK/catch %": 100,
+   "FORMAT_BREAK/blind rows": 0,
+   "RECOMPUTED_FIELD/rows": 1385,
+   "RECOMPUTED_FIELD/detectable": 639,
+   "RECOMPUTED_FIELD/caught": 639,
+   "RECOMPUTED_FIELD/catch %": 46.13718411552347,
+   "RECOMPUTED_FIELD/blind rows": 746,
+   "NAME_CHAR/rows": 1393,
+   "NAME_CHAR/detectable": 1393,
+   "NAME_CHAR/caught": 1393,
+   "NAME_CHAR/catch %": 100,
+   "NAME_CHAR/blind rows": 0,
+   "COMPOSITE_DIGIT/rows": 576,
+   "COMPOSITE_DIGIT/detectable": 576,
+   "COMPOSITE_DIGIT/caught": 576,
+   "COMPOSITE_DIGIT/catch %": 100,
+   "COMPOSITE_DIGIT/blind rows": 0,
+   "DATA_CHAR/rows": 1371,
+   "DATA_CHAR/detectable": 1371,
+   "DATA_CHAR/caught": 1371,
+   "DATA_CHAR/catch %": 100,
+   "DATA_CHAR/blind rows": 0
+  },
+  "MRZ catch rate by expected field": {
+   "PERSONAL_NUMBER/detectable rows": 558,
+   "PERSONAL_NUMBER/caught": 558,
+   "PERSONAL_NUMBER/catch %": 100,
+   "COMPOSITE/detectable rows": 1961,
+   "COMPOSITE/caught": 1215,
+   "COMPOSITE/catch %": 61.958184599694036,
+   "DOCUMENT_NUMBER/detectable rows": 560,
+   "DOCUMENT_NUMBER/caught": 560,
+   "DOCUMENT_NUMBER/catch %": 100,
+   "NAME/detectable rows": 1393,
+   "NAME/caught": 1393,
+   "NAME/catch %": 100,
+   "OPTIONAL_DATA/detectable rows": 522,
+   "OPTIONAL_DATA/caught": 522,
+   "OPTIONAL_DATA/catch %": 100,
+   "EXPIRY_DATE/detectable rows": 559,
+   "EXPIRY_DATE/caught": 559,
+   "EXPIRY_DATE/catch %": 100,
+   "BIRTH_DATE/detectable rows": 535,
+   "BIRTH_DATE/caught": 535,
+   "BIRTH_DATE/catch %": 100
+  },
+  "MRZ structurally blind rows by reason": {
+   "TD1 has no composite check digit: a recomputed field check digit is not detectable by MRZ arithmetic/rows": 746
+  },
+  "QR verification outcome by fixture arm": {
+   "VALID/cases": 100,
+   "VALID/as expected": 100,
+   "VALID/%": 100,
+   "REJECTED/cases": 215,
+   "REJECTED/as expected": 215,
+   "REJECTED/%": 100,
+   "STALE/cases": 2,
+   "STALE/as expected": 2,
+   "STALE/%": 100,
+   "UNSIGNED/cases": 30,
+   "UNSIGNED/as expected": 30,
+   "UNSIGNED/%": 100
+  },
+  "D-SCEN scripts by category": {
+   "ALIAS/scripts": 10,
+   "ALIAS/passed": 10,
+   "ALIAS/%": 100,
+   "TRAVEL/scripts": 10,
+   "TRAVEL/passed": 10,
+   "TRAVEL/%": 100,
+   "FACILITATOR/scripts": 10,
+   "FACILITATOR/passed": 10,
+   "FACILITATOR/%": 100,
+   "WATCHLIST/scripts": 5,
+   "WATCHLIST/passed": 5,
+   "WATCHLIST/%": 100,
+   "BENIGN/scripts": 5,
+   "BENIGN/passed": 5,
+   "BENIGN/%": 100
+  },
+  "Latency by stage (host JVM)": {
+   "mrz.parse/median ms": 0.049747,
+   "mrz.parse/p95 ms": 0.09668969999999998,
+   "mrz.parse/advisory budget ms": 0.5,
+   "macro.spectrum/median ms": 5.412196,
+   "macro.spectrum/p95 ms": 6.6145308499999995,
+   "macro.spectrum/advisory budget ms": 150,
+   "macro.lbp/median ms": 1.2841285,
+   "macro.lbp/p95 ms": 4.734307299999999,
+   "macro.lbp/advisory budget ms": 60,
+   "macro.edges/median ms": 0.2922475,
+   "macro.edges/p95 ms": 0.8167219499999999,
+   "macro.edges/advisory budget ms": 40,
+   "face.cosine/median ms": 0.013838,
+   "face.cosine/p95 ms": 0.020532949999999998,
+   "face.cosine/advisory budget ms": 0.05,
+   "qr.verify/median ms": 0.27610250000000003,
+   "qr.verify/p95 ms": 0.41806530000000003,
+   "qr.verify/advisory budget ms": 5
+  }
+ },
+ "notes": [
+  "Corpus generated in-process from seed 20260929; no MRZ media is committed.",
+  "Catch/precision definitions come from dev.kasoti.evalmetrics.MutateCatch, so the harness and :core's own tests cannot disagree about what 'caught' means.",
+  "HEADLINE 100% on 6725 detectable mutants; 746 structurally blind rows reported separately and NOT counted in either direction.",
+  "  \u00b7 746 \u00d7 TD1 has no composite check digit: a recomputed field check digit is not detectable by MRZ arithmetic",
+  "Signatures are produced at run time by a HARNESS STUB verifier over a per-JVM RSA keypair. Production verification is the JCA binding in :platform; these numbers certify :core's key selection and tamper detection, not the platform binding.",
+  "All key material is labelled TEST and is never written to eval/data/keys/.",
+  "Ring rotation date is fixed: one bundled key is inside the rotation window (uidai_test) and two are outside it, so a valid signature reports Valid and a valid signature under an expired key reports StaleKeys \u2014 distinguishable outcomes rather than the same code path. Every tamper arm is signed by the FRESH key precisely so the tamper check and the rotation check cannot be confused for one another.",
+  "Verdicts come from dev.kasoti.fusion.FusionEngine over findings produced by the real diary rules. No rule is reimplemented in the harness.",
+  "Baseline for every scenario: Track.PAPER_ID, quality CLEAN, math allChecksPassed=true and unexpired, macro MATCH at full margins with the clip used, face similarity 0.99 at full quality. PAPER_ID's load-bearing layers are quality/face/diary, so the coverage rules add nothing and the verdict reflects the diary alone.",
+  "R-ALIAS-01 is RED with `requiresSupervisorConfirmation`; FusionEngine reports `supervisorRequired`, so an AMBER script that reaches RED with the code present is still counted as a script miss rather than quietly accepted.",
+  "No clock is read: every crossing timestamp derives from 2026-09-01T09:00:00Z (AGENTS.md \u00a75).",
+  "This suite proves the harness and :core agree on the arithmetic, not that the arithmetic models reality. ICAO 9303's worked examples are used as external anchors so a shared misreading of the spec cannot pass unnoticed.",
+  "Patch size is 256x256, which is the size :core's spectrum path requires, so the feature checks run on a realistic input.",
+  "Host JVM, not a device. The NAMED-device numbers EVAL.md \u00a74 requires come from a device run of this suite with a build fingerprint recorded.",
+  "Timing uses System.nanoTime (monotonic), so an NTP step cannot produce a negative stage.",
+  "60 timed iterations per stage after 5 discarded warm-up runs; a p95 over that many samples is indicative, not a tail-latency claim."
+ ],
+ "governance": {
+  "status": "INCOMPLETE",
+  "exitCode": 4,
+  "splitDiscipline": {
+   "valid": true,
+   "summary": "VALID \u2014 7 threshold(s) checked, 6 still at the untuned default",
+   "checked": [
+    "FACILITATOR_MIN_GROUPS",
+    "FACILITATOR_WINDOW_DAYS",
+    "T_ALIAS_HI",
+    "T_FACE_GREEN",
+    "T_FACE_RED",
+    "T_WL",
+    "VMAX"
+   ],
+   "untuned": [
+    "FACILITATOR_MIN_GROUPS is still at its untuned registry default",
+    "FACILITATOR_WINDOW_DAYS is still at its untuned registry default",
+    "T_ALIAS_HI is still at its untuned registry default",
+    "T_FACE_GREEN is still at its untuned registry default",
+    "T_FACE_RED is still at its untuned registry default",
+    "T_WL is still at its untuned registry default"
+   ],
+   "reportSplitTuned": [],
+   "unrecorded": [],
+   "manifestProblems": []
+  },
+  "calibration": {
+   "deviceId": "TEST-HARNESS-JVM",
+   "present": false,
+   "accepted": false,
+   "ageDays": null,
+   "reason": "No device_calib.json for 'TEST-HARNESS-JVM' (looked in /mnt/Lay/Kasoti/eval/data/manifests/calib/TEST-HARNESS-JVM/device_calib.json). Macro metrics are uncalibrated: white-balance and pixels-per-millimetre vary per device and per lighting, so a threshold fitted across an uncalibrated device is fitted to the camera's colour pipeline rather than to the print process. EVAL.md \u00a77 requires calibration no older than 7 days before any macro or face number counts.",
+   "source": "/mnt/Lay/Kasoti/eval/data/manifests/calib/TEST-HARNESS-JVM/device_calib.json"
+  },
+  "suites": [
+   {
+    "suite": "mrz",
+    "ran": true,
+    "skipReason": null,
+    "gateIds": [
+     "M-GATE-01",
+     "M-GATE-02",
+     "M-GATE-03"
+    ],
+    "durationMs": 0,
+    "notes": [
+     "Corpus generated in-process from seed 20260929; no MRZ media is committed.",
+     "Catch/precision definitions come from dev.kasoti.evalmetrics.MutateCatch, so the harness and :core's own tests cannot disagree about what 'caught' means.",
+     "HEADLINE 100% on 6725 detectable mutants; 746 structurally blind rows reported separately and NOT counted in either direction.",
+     "  \u00b7 746 \u00d7 TD1 has no composite check digit: a recomputed field check digit is not detectable by MRZ arithmetic"
+    ]
+   },
+   {
+    "suite": "qr",
+    "ran": true,
+    "skipReason": null,
+    "gateIds": [
+     "Q-GATE-01",
+     "Q-GATE-02",
+     "Q-GATE-03"
+    ],
+    "durationMs": 0,
+    "notes": [
+     "Signatures are produced at run time by a HARNESS STUB verifier over a per-JVM RSA keypair. Production verification is the JCA binding in :platform; these numbers certify :core's key selection and tamper detection, not the platform binding.",
+     "All key material is labelled TEST and is never written to eval/data/keys/.",
+     "Ring rotation date is fixed: one bundled key is inside the rotation window (uidai_test) and two are outside it, so a valid signature reports Valid and a valid signature under an expired key reports StaleKeys \u2014 distinguishable outcomes rather than the same code path. Every tamper arm is signed by the FRESH key precisely so the tamper check and the rotation check cannot be confused for one another."
+    ]
+   },
+   {
+    "suite": "diary",
+    "ran": true,
+    "skipReason": null,
+    "gateIds": [
+     "D-GATE-01",
+     "D-GATE-02",
+     "D-GATE-03"
+    ],
+    "durationMs": 0,
+    "notes": [
+     "Verdicts come from dev.kasoti.fusion.FusionEngine over findings produced by the real diary rules. No rule is reimplemented in the harness.",
+     "Baseline for every scenario: Track.PAPER_ID, quality CLEAN, math allChecksPassed=true and unexpired, macro MATCH at full margins with the clip used, face similarity 0.99 at full quality. PAPER_ID's load-bearing layers are quality/face/diary, so the coverage rules add nothing and the verdict reflects the diary alone.",
+     "R-ALIAS-01 is RED with `requiresSupervisorConfirmation`; FusionEngine reports `supervisorRequired`, so an AMBER script that reaches RED with the code present is still counted as a script miss rather than quietly accepted.",
+     "No clock is read: every crossing timestamp derives from 2026-09-01T09:00:00Z (AGENTS.md \u00a75)."
+    ]
+   },
+   {
+    "suite": "unit-parity",
+    "ran": true,
+    "skipReason": null,
+    "gateIds": [
+     "U-GATE-01"
+    ],
+    "durationMs": 0,
+    "notes": [
+     "This suite proves the harness and :core agree on the arithmetic, not that the arithmetic models reality. ICAO 9303's worked examples are used as external anchors so a shared misreading of the spec cannot pass unnoticed.",
+     "Patch size is 256x256, which is the size :core's spectrum path requires, so the feature checks run on a realistic input."
+    ]
+   },
+   {
+    "suite": "latency",
+    "ran": true,
+    "skipReason": null,
+    "gateIds": [
+     "L-GATE-01",
+     "L-GATE-02"
+    ],
+    "durationMs": 0,
+    "notes": [
+     "Host JVM, not a device. The NAMED-device numbers EVAL.md \u00a74 requires come from a device run of this suite with a build fingerprint recorded.",
+     "Timing uses System.nanoTime (monotonic), so an NTP step cannot produce a negative stage.",
+     "60 timed iterations per stage after 5 discarded warm-up runs; a p95 over that many samples is indicative, not a tail-latency claim."
+    ]
+   }
+  ],
+  "gates": [
+   {
+    "id": "M-GATE-01",
+    "name": "MRZ mutate-catch",
+    "status": "PASS",
+    "bar": "100% of detectable mutants",
+    "observed": "100.000% (6725/6725)",
+    "detail": "10000 rows, seed 20260929, reference year 2026. 746 structurally blind rows are excluded from the denominator and reported separately as mrz.mutate_catch.structurally_blind. Source: EVAL.md \u00a72 D-MRZ.",
+    "evidenceRef": "dev.kasoti.mrz.MrzCorpus.generate/20260929/10000"
+   },
+   {
+    "id": "M-GATE-02",
+    "name": "MRZ false-positive rate on valid documents",
+    "status": "PASS",
+    "bar": "0% \u2014 EVAL.md \u00a74 precision; not in SPEC.md \u00a77, but a suite that passes the catch gate by flagging everything is not evidence",
+    "observed": "0/2529 valid rows flagged",
+    "detail": "Valid rows are the corpus rows with mutation=NONE and no blind-spot reason.",
+    "evidenceRef": "dev.kasoti.evalmetrics.MutateCatchReport.precise"
+   },
+   {
+    "id": "M-GATE-03",
+    "name": "MRZ structurally blind cases",
+    "status": "PASS",
+    "bar": "publish the count and the reasons \u2014 EVAL.md \u00a74, and the reason the 100% gate cannot hide behind them",
+    "observed": "746 of 10000 rows (7.46%): 746 x TD1 has no composite check digit: a recomputed field check digit is not detectable by MRZ arithmetic",
+    "detail": "These rows are undetectable by MRZ arithmetic. They are the substrate the other layers (QR signature, chip PA, macro, face) exist for, and no MRZ gate can close them. Full reasons are itemised in the table below.",
+    "evidenceRef": "EVAL.md \u00a74"
+   },
+   {
+    "id": "Q-GATE-01",
+    "name": "QR tamper-catch on rejected fixtures",
+    "status": "PASS",
+    "bar": "100% (SPEC.md \u00a77)",
+    "observed": "100% (245/245)",
+    "detail": "bit-flipped payloads, re-encoded fields, rogue-key signatures and unsigned payloads, all of which must not verify. SecureQr reports a signed but unverifiable payload as UnknownKey (no key matched) and an unsigned one as Invalid; both are rejections, and RedRules.qrSignature collapses them into R-QR-01 behind a single signatureValid boolean.",
+    "evidenceRef": "dev.kasoti.eval.fixtures.QrFixtures.build/20260930/300"
+   },
+   {
+    "id": "Q-GATE-02",
+    "name": "QR accept rate on genuine signed fixtures",
+    "status": "PASS",
+    "bar": "100% \u2014 refusing every payload satisfies the tamper gate and is useless",
+    "observed": "100% (100/100)",
+    "detail": "Genuine payloads signed by a bundled key must return SigResult.Valid.",
+    "evidenceRef": "dev.kasoti.eval.fixtures.QrFixtures.build/20260930/300"
+   },
+   {
+    "id": "Q-GATE-03",
+    "name": "QR\u2194print cross-check catches a valid signature over the wrong person",
+    "status": "PASS",
+    "bar": "100% (FUSION.md R-QR-02)",
+    "observed": "100% (100/100)",
+    "detail": "A genuine, correctly signed payload compared against a mismatched printed name and DOB must produce at least one QrMismatch.",
+    "evidenceRef": "dev.kasoti.qr.QrCrossCheck.compare"
+   },
+   {
+    "id": "D-GATE-01",
+    "name": "Diary rules on planted D-SCEN scripts (verdict + finding codes)",
+    "status": "PASS",
+    "bar": "100% (EVAL.md \u00a72 D-SCEN)",
+    "observed": "23/23 scripts matched verdict and codes",
+    "detail": "Run through dev.kasoti.diary.{aliasRule,impossibleTravel,facilitatorRule} and dev.kasoti.fusion.FusionEngine \u2014 the product path, not a harness copy. Baseline: Track.PAPER_ID, quality CLEAN, math allChecksPassed=true and unexpired, macro MATCH at full margins with the clip used, face similarity 0.99 at full quality. PAPER_ID's load-bearing layers are quality/face/diary, so the coverage rules add nothing and the verdict reflects the diary alone.",
+    "evidenceRef": "dev.kasoti.eval.fixtures.DiaryScenarios.build"
+   },
+   {
+    "id": "D-GATE-02",
+    "name": "Diary rules stay GREEN on benign D-SCEN scripts",
+    "status": "PASS",
+    "bar": "100% \u2014 a rule that fires on an ordinary week will eventually accuse someone who did nothing",
+    "observed": "17/17 scripts stayed GREEN",
+    "detail": "Benign scripts are ordinary multi-post weeks: one post and one cohort per crossing, 24 h apart, no alias, no watchlist.",
+    "evidenceRef": "dev.kasoti.eval.fixtures.DiaryScenarios.build"
+   },
+   {
+    "id": "D-GATE-03",
+    "name": "Diary 1:N rank-1 retrieval on a synthetic gallery",
+    "status": "PASS",
+    "bar": "100% rank-1 over 10000 distractors (EVAL.md \u00a74)",
+    "observed": "rank-1 100.00%, actionable 100.00% over 10 probes against 10001 distractors",
+    "detail": "The gallery is synthetic: %d distractors plus the true event, ranked by score. `actionable` additionally requires top \u2212 runner-up \u2265 DELTA_MARGIN, because a rank-1 hit the runner-up nearly matches is not an identification.",
+    "evidenceRef": "dev.kasoti.evalmetrics.DiaryMetrics.retrieval"
+   },
+   {
+    "id": "U-GATE-01",
+    "name": "Unit parity: :core vs independently computed references",
+    "status": "PASS",
+    "bar": "all checks within 1.0E-6 absolute",
+    "observed": "19/19 agree",
+    "detail": "Reference values are computed in the harness from the published algorithms and the ICAO 9303 worked examples, not read from :core.",
+    "evidenceRef": "dev.kasoti.eval.suites.UnitParitySuite"
+   },
+   {
+    "id": "L-GATE-01",
+    "name": "Latency microbenchmark within host stage budgets",
+    "status": "PASS",
+    "bar": "host advisory budgets \u2014 SPEC.md \u00a77's 15 s ceiling is a DEVICE gate",
+    "observed": "all 6 stages within budget",
+    "detail": "Measured on the host JVM, not on a device. The device numbers EVAL.md \u00a74 requires are produced by a device run of this same suite, with a build fingerprint recorded.",
+    "evidenceRef": "dev.kasoti.eval.suites.LatencySuite"
+   },
+   {
+    "id": "L-GATE-02",
+    "name": "Wall-clock stranger check on eval-host-jvm (NOT a NAMED device) [HOST \u2014 advisory]",
+    "status": "SKIPPED",
+    "bar": "median <= 15.0 s",
+    "observed": "not measured on a device \u2014 this host run is not a NAMED device",
+    "detail": "SPEC.md \u00a77's 15 s stranger ceiling is a device gate. The host sum of stage p95s is median 12.70 s (p95 12.70 s, n=1), but a desktop JVM number is not a claim about a low-end phone, so this gate is SKIPPED rather than passed or failed. A device run of this suite produces the real measurement.",
+    "evidenceRef": "dev.kasoti.eval.suites.LatencySuite"
+   }
+  ],
+  "operatingPoints": [
+   {
+    "threshold": "T_FACE_RED",
+    "value": 0.35,
+    "unit": "cosine",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-FACE report split; owner vision",
+    "floor": 0.2,
+    "ceiling": 0.6
+   },
+   {
+    "threshold": "T_FACE_GREEN",
+    "value": 0.55,
+    "unit": "cosine",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-FACE report split; owner vision",
+    "floor": 0.35,
+    "ceiling": 0.8
+   },
+   {
+    "threshold": "T_ALIAS_HI",
+    "value": 0.8,
+    "unit": "cosine",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-FACE + D-SCEN; owner vision",
+    "floor": 0.6,
+    "ceiling": 0.95
+   },
+   {
+    "threshold": "T_WL",
+    "value": 0.75,
+    "unit": "cosine",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-SCEN; owner vision",
+    "floor": 0.6,
+    "ceiling": 0.95
+   },
+   {
+    "threshold": "VMAX",
+    "value": 120,
+    "unit": "km/h",
+    "selectedOnSplit": "policy",
+    "provisional": false,
+    "rationale": "fixed by policy; owner lead",
+    "floor": 60,
+    "ceiling": 400
+   },
+   {
+    "threshold": "FACILITATOR_MIN_GROUPS",
+    "value": 3,
+    "unit": "count",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-SCEN; owner vision",
+    "floor": 2,
+    "ceiling": 10
+   },
+   {
+    "threshold": "FACILITATOR_WINDOW_DAYS",
+    "value": 30,
+    "unit": "days",
+    "selectedOnSplit": "untuned",
+    "provisional": true,
+    "rationale": "D-SCEN; owner vision",
+    "floor": 7,
+    "ceiling": 180
+   }
+  ],
+  "thresholdProvenance": [
+   {
+    "name": "FACILITATOR_MIN_GROUPS",
+    "dataset": "D-SCEN",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "A-FAC-01: many crossings sharing at most this many distinct groups."
+   },
+   {
+    "name": "FACILITATOR_WINDOW_DAYS",
+    "dataset": "D-SCEN",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "A-FAC-01 window in days."
+   },
+   {
+    "name": "T_ALIAS_HI",
+    "dataset": "D-SCEN+D-FACE",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "R-ALIAS-01 needs supervisor confirmation on top of the similarity threshold; the threshold alone is not the rule."
+   },
+   {
+    "name": "T_FACE_GREEN",
+    "dataset": "D-FACE",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "Shipped default 0.55. Same conflict as T_FACE_RED."
+   },
+   {
+    "name": "T_FACE_RED",
+    "dataset": "D-FACE",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "Shipped default 0.35 is FUSION.md \u00a75's 'TBD by tuning' placeholder, not a fitted value. NOTE: ThresholdName.T_FACE_RED.tuningDataRef reads 'D-FACE report split' \u2014 see the spec-conflict section of summary.md."
+   },
+   {
+    "name": "T_WL",
+    "dataset": "D-SCEN",
+    "selectedOnSplit": "untuned",
+    "runId": "bootstrap",
+    "selectedAtUtc": "2026-01-05T00:00:00Z",
+    "owner": "vision",
+    "note": "A-WL-01 fires at any similarity at or above this value."
+   },
+   {
+    "name": "VMAX",
+    "dataset": "policy",
+    "selectedOnSplit": "policy",
+    "runId": "policy-120kmh",
+    "selectedAtUtc": "2026-01-01T00:00:00Z",
+    "owner": "lead",
+    "note": "120 km/h, fixed by policy (FUSION.md \u00a72 R-TRAV-01) and logged, not fitted. This is a policy value and is never a report-split tuning claim."
+   }
+  ],
+  "failures": [],
+  "specConflicts": [
+   "T_FACE_RED.tuningDataRef is 'D-FACE report split', which names the report split, but the ledger records untuned. One of the two is stale; the ledger is the one the harness enforces.",
+   "T_FACE_GREEN.tuningDataRef is 'D-FACE report split', which names the report split, but the ledger records untuned. One of the two is stale; the ledger is the one the harness enforces."
+  ],
+  "notes": [
+   "Corpus generated in-process from seed 20260929; no MRZ media is committed.",
+   "Catch/precision definitions come from dev.kasoti.evalmetrics.MutateCatch, so the harness and :core's own tests cannot disagree about what 'caught' means.",
+   "HEADLINE 100% on 6725 detectable mutants; 746 structurally blind rows reported separately and NOT counted in either direction.",
+   "  \u00b7 746 \u00d7 TD1 has no composite check digit: a recomputed field check digit is not detectable by MRZ arithmetic",
+   "Signatures are produced at run time by a HARNESS STUB verifier over a per-JVM RSA keypair. Production verification is the JCA binding in :platform; these numbers certify :core's key selection and tamper detection, not the platform binding.",
+   "All key material is labelled TEST and is never written to eval/data/keys/.",
+   "Ring rotation date is fixed: one bundled key is inside the rotation window (uidai_test) and two are outside it, so a valid signature reports Valid and a valid signature under an expired key reports StaleKeys \u2014 distinguishable outcomes rather than the same code path. Every tamper arm is signed by the FRESH key precisely so the tamper check and the rotation check cannot be confused for one another.",
+   "Verdicts come from dev.kasoti.fusion.FusionEngine over findings produced by the real diary rules. No rule is reimplemented in the harness.",
+   "Baseline for every scenario: Track.PAPER_ID, quality CLEAN, math allChecksPassed=true and unexpired, macro MATCH at full margins with the clip used, face similarity 0.99 at full quality. PAPER_ID's load-bearing layers are quality/face/diary, so the coverage rules add nothing and the verdict reflects the diary alone.",
+   "R-ALIAS-01 is RED with `requiresSupervisorConfirmation`; FusionEngine reports `supervisorRequired`, so an AMBER script that reaches RED with the code present is still counted as a script miss rather than quietly accepted.",
+   "No clock is read: every crossing timestamp derives from 2026-09-01T09:00:00Z (AGENTS.md \u00a75).",
+   "This suite proves the harness and :core agree on the arithmetic, not that the arithmetic models reality. ICAO 9303's worked examples are used as external anchors so a shared misreading of the spec cannot pass unnoticed.",
+   "Patch size is 256x256, which is the size :core's spectrum path requires, so the feature checks run on a realistic input.",
+   "Host JVM, not a device. The NAMED-device numbers EVAL.md \u00a74 requires come from a device run of this suite with a build fingerprint recorded.",
+   "Timing uses System.nanoTime (monotonic), so an NTP step cannot produce a negative stage.",
+   "60 timed iterations per stage after 5 discarded warm-up runs; a p95 over that many samples is indicative, not a tail-latency claim."
+  ],
+  "hosts": [],
+  "host": "Linux 6.18.53-1-lts amd64 12 cpu",
+  "jvm": "17.0.20.1",
+  "commitDirty": true
+ }
+}

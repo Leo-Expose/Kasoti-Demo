@@ -1,0 +1,744 @@
+/* ==========================================================================
+   KASOTI — demo stylesheet
+   Instrument-panel aesthetic: near-black ground, hairline rules, monospace for
+   every value, one accent. Saturated colour is reserved for verdict states so
+   that a RED on screen is never decoration.
+   ========================================================================== */
+
+:root {
+  --bg:          #0a0b0d;
+  --bg-2:        #0e1014;
+  --surface:     #13161b;
+  --surface-2:   #191d23;
+  --rule:        #23282f;
+  --rule-2:      #2e343d;
+
+  --ink:         #e9ecef;
+  --ink-2:       #a8b0ba;
+  /* Lifted from #6b7480, which measured 4.16:1 on --bg and 3.83:1 on --surface —
+     under the 4.5:1 floor for body text, and --ink-3 is used for body-sized
+     labels (eyebrows, stat captions, the .pill.NONE text). This value keeps the
+     same hue and clears 4.5:1 on every background it lands on (min 4.76 on
+     --surface-2). Verify before changing it. */
+  --ink-3:       #7e8997;
+
+  --accent:      #ffb454;
+  --accent-dim:  #7a5526;
+
+  --green:       #4ade80;
+  --amber:       #fbbf24;
+  --red:         #f87171;
+  --grey:        #94a3b8;
+  --info:        #60a5fa;
+
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --maxw: 1180px;
+  --gut: 28px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* faint scanline texture, the one piece of decoration */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    to bottom, rgba(255,255,255,.014) 0 1px, transparent 1px 3px);
+}
+main, header, footer { position: relative; z-index: 1; }
+
+h1, h2, h3, h4 { line-height: 1.15; margin: 0 0 .5em; letter-spacing: -0.02em; font-weight: 620; }
+h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); max-width: 25ch; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); }
+h3 { font-size: 1.16rem; }
+h4 { font-size: .95rem; }
+p  { margin: 0 0 1em; }
+a  { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-dim); }
+a:hover { border-bottom-color: var(--accent); }
+code, kbd { font-family: var(--mono); font-size: .92em; }
+small { color: var(--ink-3); }
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gut); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.eyebrow {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px;
+}
+.lede { font-size: 1.08rem; color: var(--ink-2); max-width: 62ch; }
+.hr { height: 1px; background: var(--rule); border: 0; margin: 0; }
+
+/* ---------- nav ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(10,11,13,.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav-in { display: flex; align-items: center; gap: 22px; height: 56px; }
+.brand { font-family: var(--mono); font-weight: 700; letter-spacing: .1em; color: var(--ink); }
+.brand span { color: var(--accent); }
+.nav-links { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+.nav-links a {
+  font-family: var(--mono); font-size: .78rem; color: var(--ink-2);
+  border: 0; text-transform: uppercase; letter-spacing: .08em;
+}
+.nav-links a:hover { color: var(--accent); }
+.localbadge {
+  font-family: var(--mono); font-size: .7rem; color: var(--green);
+  border: 1px solid #1d3d2b; background: #0d1a13; border-radius: 3px;
+  padding: 3px 8px; white-space: nowrap;
+}
+.localbadge::before {
+  content: ""; display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--green); margin-right: 7px;
+  vertical-align: middle;
+}
+
+/* ---------- hero ---------- */
+.hero { padding: 58px 0 52px; border-bottom: 1px solid var(--rule); }
+.hero h1 { max-width: 25ch; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero .lede { font-size: 1.06rem; }
+.hero-cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+
+/* On a wide screen the claim and the engine sit side by side, so the instrument
+   is a centrepiece rather than something below the fold. One column below 1100px. */
+.hero-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 26px; }
+.hero-copy { min-width: 0; }
+@media (min-width: 1100px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+    gap: 34px; align-items: start;
+  }
+  /* the instrument is the taller of the two; give the copy column the rest */
+  #hero-instrument { margin-top: 0; }
+  /* a narrower column reflows the headline to four lines; pull it back to three */
+  .hero h1 { font-size: clamp(2.05rem, 3.5vw, 3.05rem); }
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--mono); font-size: .84rem; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: 12px 20px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--rule-2); background: var(--surface-2); color: var(--ink);
+  transition: border-color .15s, background .15s, transform .06s;
+}
+.btn:hover { border-color: var(--accent); background: #1d2027; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: #1a1206; border-color: var(--accent); }
+.btn.primary:hover { background: #ffc474; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.sm { padding: 8px 13px; font-size: .74rem; }
+
+/* live ticker in the hero */
+.ticker {
+  margin-top: 30px; border: 1px solid var(--rule); border-radius: 5px;
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  overflow: hidden;
+}
+.ticker-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 14px; border-bottom: 1px solid var(--rule);
+  background: var(--bg-2);
+  font-family: var(--mono); font-size: .72rem; color: var(--ink-3);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+.ticker-top .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.ticker-body {
+  padding: 14px 14px; font-family: var(--mono); font-size: .9rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px;
+}
+.ticker-body b { display: block; font-size: 1.5rem; color: var(--ink); font-weight: 600; }
+.ticker-body i { font-style: normal; color: var(--ink-3); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ---------- sections ---------- */
+.section { padding: 74px 0; border-bottom: 1px solid var(--rule); }
+.section:last-of-type { border-bottom: 0; }
+.sec-head { max-width: 74ch; margin-bottom: 38px; }
+.sec-head h2 { margin-bottom: .35em; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 22px;
+}
+.card.tight { padding: 16px; }
+.card h4 { color: var(--ink-2); font-family: var(--mono); font-size: .74rem;
+           letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+/* Grid and flex children default to min-width:auto, so a wide child (a 44-char
+   tape, a long transcript) can push a track wider than the viewport. */
+.grid2 > *, .grid3 > *, .mrz-lab > *, .card, .instrument { min-width: 0; }
+@media (max-width: 900px) { .grid2, .grid3 { grid-template-columns: minmax(0,1fr); } }
+
+/* ---------- MRZ ---------- */
+.mrz-lab { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); gap: 22px; }
+/* minmax(0,…) all the way down: a bare 1fr track takes its content's min-content
+   width, which is what lets a 44-character tape widen the whole page instead of
+   scrolling inside its own box. */
+@media (max-width: 1000px) { .mrz-lab { grid-template-columns: minmax(0,1fr); } }
+
+textarea.mrz {
+  width: 100%; min-height: 132px; resize: vertical;
+  background: #07080a; color: var(--ink);
+  border: 1px solid var(--rule-2); border-radius: 5px;
+  padding: 15px; font-family: var(--mono); font-size: .95rem;
+  line-height: 1.7; letter-spacing: .06em; text-transform: uppercase;
+  white-space: pre; overflow-x: auto;
+}
+textarea.mrz:focus { outline: none; border-color: var(--accent); }
+
+.samples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+.sampletag {
+  font-family: var(--mono); font-size: .7rem; padding: 6px 10px;
+  border: 1px solid var(--rule-2); border-radius: 3px; background: var(--surface-2);
+  color: var(--ink-2); cursor: pointer;
+}
+.sampletag:hover { border-color: var(--accent); color: var(--accent); }
+
+/* the tape: monospace lines with per-character spans */
+.tape { display: flex; flex-direction: column; gap: 3px; margin: 4px 0 16px; }
+.tape-line {
+  font-family: var(--mono); font-size: clamp(.62rem, 1.5vw, .8rem);
+  letter-spacing: .1em; white-space: pre; overflow-x: auto;
+  padding: 5px 8px; background: #07080a;
+  border: 1px solid var(--rule); border-radius: 3px;
+}
+.tape-line .ln {
+  color: var(--ink-3); font-size: .7em; margin-right: 12px;
+  border-right: 1px solid var(--rule-2); padding-right: 8px;
+  display: inline-block; min-width: 2.4em; text-align: right;
+}
+.f { border-radius: 2px; }
+.f[data-cd="ok"]   { color: #9be7bb; }
+.f[data-cd="bad"]  { color: #ffd2d2; background: #4a1414; box-shadow: 0 0 0 1px #7f1d1d; }
+.f[data-cd="none"] { color: var(--ink-2); }
+.f[data-cd="cm"]   { color: #ffe0a8; background: #3a2c0c; box-shadow: 0 0 0 1px #6b4a12; }
+/* The one character the instrument actually changed. Everything it invalidates
+   turns red; this one wears a ring, so "cause" and "consequence" are separable. */
+.f[data-altered="1"] { box-shadow: 0 0 0 2px var(--accent); border-radius: 2px; }
+
+/* field table */
+.fields { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
+.frow { display: grid; grid-template-columns: 168px 1fr; gap: 14px; background: var(--surface); padding: 9px 14px; align-items: center; }
+.frow > .k { font-family: var(--mono); font-size: .72rem; color: var(--ink-3); letter-spacing: .07em; text-transform: uppercase; }
+.frow > .v { font-family: var(--mono); font-size: .92rem; word-break: break-word; }
+.frow.head { background: var(--bg-2); }
+.frow.head > .k { color: var(--ink-2); }
+@media (max-width: 560px) { .frow { grid-template-columns: 1fr; gap: 3px; } }
+
+/* verdict pill */
+.pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: .72rem; font-weight: 700;
+  letter-spacing: .11em; text-transform: uppercase;
+  padding: 4px 11px; border-radius: 3px; border: 1px solid;
+}
+.pill.GREEN { color: var(--green); border-color: #1d5c37; background: #0c1a12; }
+.pill.AMBER { color: var(--amber); border-color: #6b4a12; background: #1c1608; }
+.pill.RED   { color: var(--red);   border-color: #7f1d1d; background: #1e0d0d; }
+.pill.GREY  { color: var(--grey);  border-color: #3f4a57; background: #12161b; }
+.pill.INFO  { color: var(--info);  border-color: #1e3a5f; background: #0a1420; }
+.pill.PASS  { color: var(--green); border-color: #1d5c37; background: #0c1a12; }
+.pill.FAIL  { color: var(--red);   border-color: #7f1d1d; background: #1e0d0d; }
+.pill.NONE  { color: var(--ink-3); border-color: var(--rule-2); background: var(--bg-2); }
+
+.bigverdict { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.bigverdict .lbl { font-family: var(--mono); font-size: .72rem; color: var(--ink-3);
+                   letter-spacing: .14em; text-transform: uppercase; }
+
+/* ---------- check-digit arithmetic ---------- */
+.math { margin-top: 10px; border: 1px solid var(--rule); border-radius: 5px; background: var(--bg-2); overflow: hidden; }
+.math-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 13px; border-bottom: 1px solid var(--rule);
+  font-family: var(--mono); font-size: .73rem;
+}
+.math-head .fname { color: var(--ink-2); letter-spacing: .1em; }
+.math-scroll { overflow-x: auto; padding: 11px 13px; }
+table.calc { border-collapse: collapse; font-family: var(--mono); font-size: .76rem; }
+table.calc th {
+  text-align: left; color: var(--ink-3); font-weight: 500; font-size: .66rem;
+  letter-spacing: .1em; text-transform: uppercase; padding: 0 14px 7px 0; white-space: nowrap;
+}
+table.calc td { padding: 3px 14px 3px 0; white-space: nowrap; border-top: 1px solid #16191e; }
+table.calc td.ch { color: var(--ink); }
+table.calc td.bad { color: var(--red); font-weight: 700; }
+table.calc tr.sum td { border-top: 1px solid var(--rule-2); padding-top: 8px; color: var(--ink); }
+.math-foot {
+  padding: 10px 13px; border-top: 1px solid var(--rule);
+  font-family: var(--mono); font-size: .8rem; display: flex; gap: 22px; flex-wrap: wrap; align-items: center;
+}
+.math-foot b { font-size: 1.05rem; }
+details.why { margin-top: 10px; }
+details.why > summary {
+  cursor: pointer; font-family: var(--mono); font-size: .72rem; color: var(--ink-3);
+  letter-spacing: .1em; text-transform: uppercase; list-style: none; padding: 6px 0;
+}
+details.why > summary:hover { color: var(--accent); }
+details.why > summary::-webkit-details-marker { display: none; }
+details.why > summary::before { content: "+ "; }
+details.why[open] > summary::before { content: "\2212  "; }
+
+/* ---------- corpus ---------- */
+.progress { height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; margin: 14px 0 6px; }
+.progress > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .1s linear; }
+
+.statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 1px;
+            background: var(--rule); border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
+.stat { background: var(--surface); padding: 15px 16px; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.4rem; font-weight: 600;
+          font-variant-numeric: tabular-nums; line-height: 1.2; white-space: nowrap; }
+.stat i { font-style: normal; font-family: var(--mono); font-size: .68rem; color: var(--ink-3);
+          letter-spacing: .09em; text-transform: uppercase; }
+.stat.good b { color: var(--green); }
+.stat.warn b { color: var(--amber); }
+.stat.bad  b { color: var(--red); }
+.stat.note b { color: var(--accent); }
+
+table.data { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: .82rem; }
+table.data th {
+  text-align: left; font-size: .67rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 500; padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--rule-2); white-space: nowrap;
+}
+table.data td { padding: 8px 12px 8px 0; border-bottom: 1px solid #16191e; font-variant-numeric: tabular-nums; }
+table.data td.n { text-align: right; }
+table.data tr:last-child td { border-bottom: 0; }
+table.data .lbl { color: var(--ink-2); }
+.tbl-scroll { overflow-x: auto; }
+
+.bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; min-width: 54px; }
+.bar > i { display: block; height: 100%; background: var(--green); }
+.bar.warn > i { background: var(--amber); }
+
+/* ---------- dropzone ---------- */
+.drop {
+  border: 1px dashed var(--rule-2); border-radius: 6px; background: var(--bg-2);
+  padding: 44px 24px; text-align: center; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: #14161a; }
+.drop.over { border-style: solid; }
+.drop .big { font-family: var(--mono); font-size: 1rem; margin-bottom: 8px; }
+.drop .sub { font-family: var(--mono); font-size: .75rem; color: var(--ink-3); }
+.drop svg { opacity: .5; margin-bottom: 12px; }
+
+.filelist { display: grid; gap: 8px; margin-top: 16px; }
+.filerow {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  border: 1px solid var(--rule); border-radius: 4px; padding: 10px 13px; background: var(--surface);
+  font-family: var(--mono); font-size: .8rem;
+}
+.filerow .nm { color: var(--ink); }
+.filerow .mt { color: var(--ink-3); font-size: .72rem; margin-left: auto; }
+
+/* ---------- scenarios ---------- */
+.scen { display: grid; gap: 16px; }
+.scen-card { border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); overflow: hidden; }
+.scen-head { padding: 17px 20px; border-bottom: 1px solid var(--rule); display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.scen-head .t { flex: 1 1 320px; }
+.scen-head h3 { margin: 0 0 5px; font-size: 1.06rem; }
+.scen-head p { margin: 0; color: var(--ink-2); font-size: .89rem; }
+.scen-body {
+  padding: 18px 20px; display: grid; gap: 18px;
+  /* one minmax(0,…) track, and a horizontal scroll valve: a verdict line or a
+     findings table wider than a phone scrolls inside the card instead of
+     stretching the whole document. */
+  grid-template-columns: minmax(0, 1fr);
+  overflow-x: auto;
+}
+.scen-body > * { min-width: 0; }
+.scen-tag {
+  font-family: var(--mono); font-size: .68rem; color: var(--ink-3);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+
+table.layers { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: .79rem; }
+table.layers th { text-align: left; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+                  color: var(--ink-3); font-weight: 500; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--rule-2); }
+table.layers td { padding: 7px 12px 7px 0; border-bottom: 1px solid #16191e; vertical-align: top; }
+table.layers td.st { white-space: nowrap; font-weight: 600; letter-spacing: .06em; }
+td.st.RAN { color: var(--green); }
+td.st.SKIPPED { color: var(--ink-3); }
+td.st.UNAVAILABLE { color: var(--amber); }
+td.st.MISSING { color: var(--red); }
+
+table.finds { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: .78rem; }
+table.finds th { text-align: left; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+                 color: var(--ink-3); font-weight: 500; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--rule-2); }
+table.finds td { padding: 7px 12px 7px 0; border-bottom: 1px solid #16191e; vertical-align: top; }
+table.finds td.sev { font-weight: 700; white-space: nowrap; }
+td.sev.RED { color: var(--red); }
+td.sev.AMBER { color: var(--amber); }
+td.sev.GREY { color: var(--grey); }
+td.sev.GREEN { color: var(--green); }
+td.sev.INFO { color: var(--info); }
+
+.verdictbox { border: 1px solid var(--rule-2); border-radius: 5px; padding: 16px 18px; background: var(--bg-2); }
+.verdictbox .row { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 9px; }
+.verdictbox .row:last-child { margin-bottom: 0; }
+.verdictbox .k { font-family: var(--mono); font-size: .68rem; letter-spacing: .13em;
+                 text-transform: uppercase; color: var(--ink-3); min-width: 76px; }
+.verdictbox .v { font-size: .97rem; overflow-wrap: anywhere; }
+.verdictbox .v.hi { font-size: 1.05rem; }
+.hash { font-family: var(--mono); font-size: .68rem; color: var(--ink-3); word-break: break-all; }
+
+details.raw > summary {
+  cursor: pointer; font-family: var(--mono); font-size: .7rem; color: var(--ink-3);
+  letter-spacing: .1em; text-transform: uppercase; list-style: none; padding: 8px 0;
+}
+details.raw > summary:hover { color: var(--accent); }
+details.raw > summary::-webkit-details-marker { display: none; }
+details.raw > summary::before { content: "+ "; }
+details.raw[open] > summary::before { content: "\2212  "; }
+pre.console {
+  margin: 6px 0 0; padding: 14px; background: #06070a; border: 1px solid var(--rule);
+  border-radius: 4px; overflow-x: auto; font-family: var(--mono); font-size: .74rem;
+  line-height: 1.55; color: var(--ink-2); max-height: 400px;
+}
+
+/* ---------- limits ---------- */
+.limits { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.limit { background: var(--surface); padding: 18px 20px; display: grid; grid-template-columns: 26px 1fr; gap: 16px; }
+.limit .mk { font-family: var(--mono); color: var(--amber); font-size: 1rem; line-height: 1.5; }
+.limit h4 { margin: 0 0 4px; font-size: .98rem; }
+.limit p { margin: 0; color: var(--ink-2); font-size: .88rem; }
+.limit .fix { font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-top: 8px; }
+
+/* ---------- footer ---------- */
+footer { padding: 46px 0 66px; border-top: 1px solid var(--rule); color: var(--ink-3); font-size: .85rem; }
+footer .wrap { display: flex; gap: 26px; flex-wrap: wrap; align-items: baseline; }
+footer .mono { font-size: .78rem; }
+
+.notice {
+  border: 1px solid var(--accent-dim); background: #16110a; border-radius: 5px;
+  padding: 14px 17px; font-size: .87rem; color: #f0dcbe; margin-bottom: 20px;
+}
+.notice b { color: var(--accent); }
+.notice.plain { border-color: var(--rule-2); background: var(--surface); color: var(--ink-2); }
+.notice.plain b { color: var(--ink); }
+
+.kbd {
+  font-family: var(--mono); font-size: .72rem; background: var(--surface-2);
+  border: 1px solid var(--rule-2); border-bottom-width: 2px; border-radius: 3px;
+  padding: 2px 6px; color: var(--ink-2);
+}
+.hidden { display: none !important; }
+.mt { margin-top: 18px; }
+.mb0 { margin-bottom: 0; }
+
+.lang-toggle { display: inline-flex; border: 1px solid var(--rule-2); border-radius: 4px; overflow: hidden; }
+.lang-toggle button {
+  font-family: var(--mono); font-size: .74rem; padding: 6px 13px; cursor: pointer;
+  background: var(--surface-2); color: var(--ink-3); border: 0;
+}
+.lang-toggle button.on { background: var(--accent); color: #1a1206; font-weight: 700; }
+
+/* ==========================================================================
+   Section numbering — the page reads as an ordered path, 01 → 06.
+   The number lives in its own span, never inside the data-en/data-hi node:
+   applyStatic() assigns textContent, which would delete a sibling number.
+   ========================================================================== */
+.secnum {
+  display: inline-block; margin-right: 11px; padding: 2px 7px;
+  border: 1px solid var(--rule-2); border-radius: 3px;
+  color: var(--accent); letter-spacing: .08em; vertical-align: 1px;
+}
+.card h4 .secnum { margin-right: 10px; }
+.hero .eyebrow .secnum { margin-right: 0; }
+
+/* ==========================================================================
+   Judge brief strip — three numbers read from data/evalrun.json, one caveat.
+   ========================================================================== */
+.brief {
+  margin-top: 20px; padding: 13px 15px;
+  border: 1px solid var(--rule); border-radius: 5px; background: var(--bg-2);
+  display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 15px 22px;
+}
+@media (min-width: 1100px) {
+  .brief { grid-template-columns: minmax(0,1fr); gap: 11px; }
+  .brief-item { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 14px; align-items: baseline; }
+  .brief-item i { padding-bottom: 0; }
+}
+.brief-item { min-width: 0; }
+.brief-num {
+  display: block; font-family: var(--mono); font-variant-numeric: tabular-nums;
+  font-size: 1.32rem; font-weight: 600; line-height: 1.25; color: var(--ink);
+  /* a long figure must not widen the page on a phone */
+  overflow-wrap: anywhere;
+}
+.brief-item i {
+  display: block; font-style: normal; font-family: var(--mono); font-size: .67rem;
+  color: var(--ink-3); letter-spacing: .05em; text-transform: uppercase; line-height: 1.5;
+}
+/* The link affordance is an arrow on the figure, not an underline on the label:
+   these labels wrap to three lines and an underline cuts straight through them. */
+.brief-link { color: inherit; border-bottom: 0; }
+.brief-link .brief-num { color: var(--amber); }
+.brief-link .brief-num::after {
+  content: "\2192"; font-size: .72em; margin-left: 7px; vertical-align: .12em; opacity: .85;
+}
+.brief-link:hover .brief-num { color: var(--accent); }
+.brief-link:hover i { color: var(--ink-2); }
+.brief-caveat {
+  grid-column: 1 / -1; margin: 0; padding-top: 12px;
+  border-top: 1px solid var(--rule); font-size: .8rem; color: var(--ink-2);
+}
+
+/* ==========================================================================
+   The live hero instrument (assets/js/herodemo.js)
+   ========================================================================== */
+.instrument {
+  margin-top: 18px; border: 1px solid var(--rule); border-radius: 6px;
+  background: linear-gradient(180deg, var(--surface), var(--bg-2)); overflow: hidden;
+}
+.instrument-top {
+  display: flex; align-items: center; gap: 11px; flex-wrap: wrap;
+  padding: 8px 13px; border-bottom: 1px solid var(--rule); background: var(--bg-2);
+  font-family: var(--mono); font-size: .69rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.instrument-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3);
+  flex: none; animation: kasoti-pulse 2.4s ease-in-out infinite;
+}
+.instrument[data-phase="phaseChecks"] .instrument-dot,
+.instrument[data-phase="phaseTamper"] .instrument-dot { background: var(--accent); }
+.instrument[data-verdict="PASS"] .instrument-dot { background: var(--green); }
+.instrument[data-verdict="FAIL"] .instrument-dot { background: var(--red); }
+@keyframes kasoti-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+.instrument-title { color: var(--ink-2); }
+.instrument-phase { margin-left: auto; color: var(--accent); }
+.instrument-tape { padding: 10px 13px 0; }
+.instrument-line { font-size: clamp(.58rem, 1.4vw, .76rem); }
+/* An unrevealed character is a lit block rather than a gap, so the tape always
+   reads as 44 positions wide instead of a line that grows. */
+.tape-line .f-pending { color: transparent; background: #12151a; }
+
+.instrument-checks { padding: 0 13px 2px; }
+.icheck { padding: 5px 0; border-top: 1px solid var(--rule); }
+.icheck:first-child { border-top: 0; }
+.icheck-head { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
+.icheck-name {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-2); flex: 1 1 auto; min-width: 0;
+}
+.icheck[data-state="pass"] .icheck-name { color: var(--green); }
+.icheck[data-state="fail"] .icheck-name { color: var(--red); }
+.icheck-sum { font-family: var(--mono); font-size: .73rem; color: var(--ink-3); }
+.icheck-sumlabel, .icheck-cmp { color: var(--ink-3); }
+.icheck-cmp { color: var(--ink-2); }
+.icheck-verdict { margin-left: auto; }
+.icheck.is-active { background: #10141a; box-shadow: inset 2px 0 0 var(--accent); padding-left: 9px; margin-left: -9px; }
+.icheck-terms { display: none; }
+.icheck.is-active .icheck-terms {
+  display: flex; gap: 5px; overflow-x: auto; padding: 6px 0 3px;
+}
+.icterm {
+  font-family: var(--mono); font-size: .67rem; color: var(--ink-2);
+  background: #07080a; border: 1px solid var(--rule); border-radius: 2px;
+  padding: 1px 5px; white-space: nowrap; flex: none;
+}
+.instrument-caption {
+  margin: 0; padding: 9px 13px; border-top: 1px solid var(--rule); background: var(--bg-2);
+  font-family: var(--mono); font-size: .77rem; color: var(--accent);
+}
+.instrument[data-verdict="FAIL"] .instrument-caption { color: var(--red); }
+.instrument[data-static="1"] .instrument-caption { color: var(--ink-2); }
+
+/* ==========================================================================
+   "Try to fool it" — framing for the specimen chips main.js owns.
+   ========================================================================== */
+.ladder {
+  margin-top: 16px; padding: 12px 14px; background: var(--bg-2);
+  border: 1px solid var(--rule); border-left: 2px solid var(--accent-dim); border-radius: 4px;
+}
+.ladder-title {
+  margin: 0 0 4px; font-family: var(--mono); font-size: .73rem;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+}
+.ladder-note { margin: 0; font-size: .84rem; color: var(--ink-2); line-height: 1.5; }
+
+/* ==========================================================================
+   Focus. Keyboard users had no indicator at all before this.
+   ========================================================================== */
+:where(a, button, textarea, input, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* the two rules above that suppress a focus outline, re-asserted with matching
+   specificity and placed after them */
+textarea.mrz:focus-visible, .drop:focus-visible, .sampletag:focus-visible,
+.btn:focus-visible, .lang-toggle button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+/* the sticky nav must not sit on top of whatever was just focused or targeted */
+.section, .hero, #lab, #corpus, #pdf, #verdicts, #sec-measured, #sec-limits,
+#measured, #limits { scroll-margin-top: 82px; }
+
+/* ==========================================================================
+   Responsive. Untested below 900px until now; these are the floors.
+   ========================================================================== */
+@media (max-width: 760px) {
+  :root { --gut: 20px; }
+  /* the six section links cannot fit beside the brand and the language toggle
+     without either wrapping the 56px bar or eating the viewport */
+  .nav-links { display: none; }
+  .nav-in { gap: 12px; }
+  .hero { padding: 52px 0 46px; }
+  .brief { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px 18px; }
+  .instrument-line { font-size: .62rem; letter-spacing: .06em; }
+  /* name and pill share the first line; the arithmetic drops to its own line */
+  .icheck-name { flex: 0 1 auto; }
+  .icheck-verdict { margin-left: auto; }
+  .icheck-sum { flex: 1 1 100%; order: 3; }
+}
+
+@media (max-width: 700px) {
+  /* a figure like "10,000 / 10,000" cannot hold one line in a 148px tile */
+  .stat b { font-size: 1.05rem; white-space: normal; overflow-wrap: anywhere; }
+  .statgrid { grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); }
+  .stat { padding: 13px 13px; }
+  .drop { padding: 32px 18px; }
+  .scen-head, .scen-body { padding: 15px 15px; }
+  .card { padding: 18px; }
+  .limit { padding: 15px 15px; grid-template-columns: 22px 1fr; gap: 12px; }
+}
+
+@media (max-width: 560px) {
+  .brief { grid-template-columns: minmax(0,1fr); }
+  .brief-num { font-size: 1.18rem; }
+  .localbadge { font-size: .62rem; padding: 3px 6px; }
+  .instrument-top { font-size: .64rem; }
+  .instrument-phase { margin-left: 0; flex: 1 1 100%; }
+  .ticker-body { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+  .ticker-body b { font-size: 1.24rem; }
+  .hero-cta .btn { flex: 1 1 100%; justify-content: center; }
+  .limit { grid-template-columns: minmax(0,1fr); }
+  .limit .mk { display: none; }
+  .verdictbox { padding: 13px 14px; }
+}
+
+@media (max-width: 400px) {
+  :root { --gut: 14px; }
+  .hero { padding: 38px 0 36px; }
+  .hero h1 { max-width: none; }
+  .card { padding: 15px; }
+  .brief { padding: 13px 13px; }
+  textarea.mrz { font-size: .82rem; padding: 12px; }
+  .statgrid { grid-template-columns: minmax(0,1fr); }
+  .ticker-body b { font-size: 1.12rem; }
+  .localbadge { display: none; }
+}
+
+/* ==========================================================================
+   Reduced motion, globally.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .instrument-dot { animation: none !important; }
+}
+
+/* ==========================================================================
+   Print. A judge who hits Ctrl-P should get the disclosures, not the chrome.
+   ========================================================================== */
+@media print {
+  :root {
+    --bg: #fff; --bg-2: #fff; --surface: #fff; --surface-2: #fff;
+    --rule: #b8b8b8; --rule-2: #8a8a8a;
+    --ink: #000; --ink-2: #1c1c1c; --ink-3: #3d3d3d;
+    --accent: #6b3d00; --accent-dim: #8a8a8a;
+    --green: #0a5c2b; --amber: #6b3d00; --red: #a01515; --grey: #3d3d3d; --info: #123f6b;
+  }
+  html { scroll-behavior: auto; scroll-padding-top: 0; }
+  body { background: #fff; color: #000; font-size: 10.5pt; line-height: 1.45; }
+  body::before { display: none; }
+
+  /* chrome and affordances — nothing here carries a disclosure */
+  .nav, .hero-cta, .btn, .samples, .ladder, .drop, #file-input,
+  .progress, .instrument-dot, .icheck-terms, .ticker-top .dot,
+  .lang-toggle, .localbadge, .hero h1 em { display: none !important; }
+  /* ...except the hero headline's second clause, which is part of the claim */
+  .hero h1 em { display: inline !important; font-style: italic; color: #000; }
+
+  .wrap { max-width: none; padding: 0; }
+  .hero { padding: 0 0 10pt; border-bottom: 1px solid var(--rule); }
+  .hero h1 { font-size: 19pt; max-width: none; }
+  .hero .lede { font-size: 10pt; }
+  .section { padding: 12pt 0; border-bottom: 1px solid var(--rule); break-inside: auto; }
+  .sec-head { margin-bottom: 10pt; }
+  h2 { font-size: 14pt; }
+  .card, .instrument, .verdictbox, .scen-card, .limit, .brief, .notice {
+    background: #fff !important; border-color: #b8b8b8 !important;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .brief { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .tape-line { background: #fff !important; border-color: #b8b8b8 !important; overflow-x: visible; }
+  .tape-line .f-pending { background: #fff !important; }
+  .f[data-cd="ok"]  { color: #0a5c2b !important; }
+  .f[data-cd="bad"] { color: #a01515 !important; background: #fff !important; box-shadow: none !important; font-weight: 700; }
+  .f[data-cd="cm"]  { color: #6b3d00 !important; background: #fff !important; box-shadow: none !important; }
+  .f[data-cd="none"]{ color: #3d3d3d !important; }
+  /* the textarea is dark in the app; with --ink forced to black it would print
+     black on black, so it needs its own surface */
+  textarea.mrz { background: #fff !important; color: #000 !important; border-color: #8a8a8a !important; }
+  .icheck-name, .icheck-sum, .icheck-cmp, .instrument-title, .instrument-phase,
+  .instrument-caption, .brief-item i, .ticker-top, .ticker-body i, .frow > .k,
+  table.calc th, .stat i, .math-head, .math-foot, .verdictbox .k { color: #000 !important; }
+  .notice { color: #000 !important; }
+  .notice b { color: #000 !important; }
+  .pill { background: #fff !important; border-color: #8a8a8a !important; }
+  .pill.GREEN, .pill.PASS { color: #0a5c2b !important; border-color: #0a5c2b !important; }
+  .pill.RED, .pill.FAIL   { color: #a01515 !important; border-color: #a01515 !important; }
+  .pill.AMBER             { color: #6b3d00 !important; border-color: #6b3d00 !important; }
+  .pill.GREY, .pill.NONE  { color: #3d3d3d !important; }
+  .pill.INFO              { color: #123f6b !important; border-color: #123f6b !important; }
+  pre.console { background: #fff !important; border-color: #b8b8b8 !important; color: #000 !important;
+                max-height: none !important; white-space: pre-wrap; word-break: break-word; font-size: 7.6pt; }
+  .kbd { background: #fff !important; border-color: #8a8a8a !important; }
+  table.data th, table.layers th, table.finds th, table.calc th { color: #3d3d3d !important; }
+  table.data td, table.layers td, table.finds td, table.calc td { border-bottom-color: #ddd !important; }
+  td.st.MISSING, td.sev.RED { color: #a01515 !important; }
+  td.st.UNAVAILABLE, td.sev.AMBER { color: #6b3d00 !important; }
+  td.st.RAN, td.sev.GREEN { color: #0a5c2b !important; }
+  .secnum, .ladder-title { color: #000 !important; border-color: #8a8a8a !important; }
+  .statgrid, .fields, .limits { background: #b8b8b8 !important; }
+  .stat, .frow, .limit { background: #fff !important; }
+  a { color: #000 !important; border-bottom-color: #8a8a8a !important; }
+  footer { padding: 10pt 0 0; border-top: 1px solid var(--rule); }
+
+  /* Closed disclosures print open: the limits, the verdicts and the caveats are
+     the point of the document, so they must not be summarised away. */
+  details::details-content { content-visibility: visible !important; }
+  details:not([open]) > *:not(summary) { display: block !important; }
+  details > summary { list-style: none; font-weight: 700; color: #000; }
+}

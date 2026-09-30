@@ -1,0 +1,41 @@
+  · macro model: svm_print_v1 @ train-20260929T200155Z-SYNTHETIC-s20260932 — SYNTHETIC, trained on generated textures, never gate-eligible (SYNTHETIC: eval/tools/synth_macros.py@2026101 (48 docs/class, 6 crops/doc) — NOT D-MACRO)
+  · SYNTHETIC MACRO MODEL — trained on generated textures by eval/tools/synth_macros.py. It is not evidence about any print process and is not the D-MACRO gate (SPEC §7).
+
+=== KASOTI screening AMBER ===================================================
+  case            case_01M3RSCWRWQAFNCBBAYFXF5WPH
+  track           PAPER_ID
+  image           specimen.png
+  auditTip        fce28d1b7ce36e9797c7344a4a2755d942eff9a397a98489887887959de736b4
+  clock           system clock: 2026-09-30T09:12:44.245Z (skew against the reference post is flagged at sync — SYNC.md §2)
+
+  LAYERS
+  layer               state         detail
+  image               RAN           640x400 gray, mean 0.825
+  quality             RAN           brightness 210.278 within [40.000, 225.000]
+  quality.appearance  UNAVAILABLE   blur/glare/pose need the capture pipeline; a file import cannot attest them
+  math                RAN           TD3; all check digits pass
+  qr                  SKIPPED       no QR supplied
+  macro               SKIPPED       no photoZone/textZone in the sidecar
+  face                UNAVAILABLE   no embedding interpreter bound (M2)
+  diary               UNAVAILABLE   dev.kasoti.diary not yet in :core (M2)
+
+  FINDINGS (3)
+  severity  code             evidence              detail
+  AMBER     A_MISSING_LAYER  evidence/layers#face=Arequired check face did not produce a usable result (ABSENT); it is not treated as a pass
+  AMBER     A_MISSING_LAYER  evidence/layers#diary=required check diary did not produce a usable result (ABSENT); it is not treated as a pass
+  INFO      M_OK             mrz/checks#all-pass   every check digit agreed
+
+  VERDICT : AMBER
+  ACTION  : SECONDARY REVIEW REQUIRED before any decision
+  EN      : Math checks passed
+  HI      : गणित जाँच सफल
+
+  POLICY
+  thresholds      v1 (run console)
+  fusion rules    fusion-v1
+
+  WARNINGS
+    ! secondary inspection: A_MISSING_LAYER@evidence/layers#face=ABSENT, A_MISSING_LAYER@evidence/layers#diary=ABSENT
+
+  · DEMO RUN — the decision is stamped demoMode and is not evidence of anything (invariant I7)
+  => screened case_01M3RSCWRWQAFNCBBAYFXF5WPH: AMBER
