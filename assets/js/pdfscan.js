@@ -88,6 +88,29 @@ const S = {
   zone:      ['Machine-readable zone', 'मशीन-पठन क्षेत्र'],
   validSpec:  ['specimen, check digits intact', 'नमूना, चेक डिजिट सही'],
   alteredSpec:['specimen, one digit altered', 'नमूना, एक अंक बदला हुआ'],
+  specFirst: [
+    'Start here. This builds a PDF in this tab — no upload, no server, nothing fetched — '
+    + 'with a real ICAO 9303 zone inside it, and runs the same check digits the field app runs. '
+    + 'Two are made: one intact, one with a single digit changed.',
+    'यहाँ से शुरू करें। यह इसी टैब में एक PDF बनाता है — कोई अपलोड नहीं, कोई सर्वर नहीं, कुछ भी फ़ेच नहीं — '
+    + 'जिसमें एक असली ICAO 9303 क्षेत्र होता है, और वही चेक डिजिट चलाता है जो फ़ील्ड ऐप चलाता है। '
+    + 'दो बनते हैं: एक सही, एक में एक अंक बदला हुआ।',
+  ],
+  specCta:   ['Generate the two specimens', 'दो नमूने बनाएँ'],
+  realDoc: [
+    'About your own document: a passport PDF is usually a scan, and a scan has no text layer '
+    + 'for us to read — the OCR that handles it needs the native build. Try it anyway; we will '
+    + 'say exactly what we found and, if there is no text layer, we will say that rather than guess.',
+    'आपके अपने दस्तावेज़ के बारे में: पासपोर्ट PDF आमतौर पर स्कैन होता है, और स्कैन में पढ़ने के लिए टेक्स्ट लेयर नहीं होती — '
+    + 'उसे पढ़ने वाला OCR मूल बिल्ड चाहिए। फिर भी कोशिश करें; हम बताएँगे कि हमें ठीक क्या मिला, और यदि टेक्स्ट लेयर नहीं है '
+    + 'तो अनुमान लगाने के बजाय वही बताएँगे।',
+  ],
+  realDocCaveat: [
+    'No text layer — this looks like a scan or a photo of a document. Reading one needs the OCR '
+    + 'in the native build, so we stop here instead of inventing a result.',
+    'टेक्स्ट लेयर नहीं — यह दस्तावेज़ के स्कैन या फ़ोटो जैसा लगता है। ऐसा पढ़ने के लिए मूल बिल्ड का OCR चाहिए, '
+    + 'इसलिए हम परिणाम गढ़ने के बजाय यहीं रुक जाते हैं।',
+  ],
   nofile:     ['That drop carried no file.', 'उस ड्रॉप में कोई फ़ाइल नहीं थी।'],
   notpdf:     ['Not a PDF — nothing was read.', 'PDF नहीं है — कुछ भी नहीं पढ़ा गया।'],
   toobig:     ['Over the 4 MB limit ({size}) — nothing was read.',
@@ -95,7 +118,8 @@ const S = {
   locked:     ['Password protected — we did not ask, and we do not guess.',
                'पासवर सुरक्षित — हमने पूछा नहीं, और अनुमान भी नहीं लगाते।'],
   unopenable: ['Encrypted or damaged — the parser refused it.', 'एन्क्रिप्टेड या क्षतिग्रस्त — पार्सर ने मना कर दिया।'],
-  enginefail: ['The in-page PDF engine failed to load.', 'पृष्ठ का PDF इंजन लोड नहीं हुआ।'],
+  enginefail: ['The PDF engine did not load. Press “Generate a specimen” to retry — nothing on this page needs the network beyond this one script.',
+              'PDF इंजन लोड नहीं हुआ। “नमूना बनाएँ” दबाकर फिर कोशिश करें — इस पृष्ठ को इस एक स्क्रिप्ट के अलावा नेटवर्क की ज़रूरत नहीं है।'],
   nopages:    ['The parser opened it but found no pages.', 'पार्सर ने इसे खोला पर कोई पृष्ठ नहीं मिला।'],
   loading:    ['loading the in-page engine', 'इन-पेज इंजन लोड हो रहा है'],
   marker:     ['showing', 'दिखा रहा है'],
@@ -289,22 +313,77 @@ const enc = (s) => new TextEncoder().encode(s);
    ========================================================================== */
 
 let pdfjsPromise = null;
+let engineAttempt = 0;   // bumped per attempt; see loadPdfjs() for why
 let engineLoaded = false;
 let workerPromise = null;
 
+let engineWarm = false;
+
+/**
+ * Load the pdf.js module, memoised — but **not** poisoned.
+ *
+ * The first version memoised the import with no rejection handling, so a single
+ * failed fetch left a rejected promise in `pdfjsPromise` for the life of the page
+ * and *every* later click reported "The in-page PDF engine failed to load."
+ * The trigger is mundane and was observed in the wild: a transient 404 while a
+ * deployment was rolling, or a cold CDN. One hiccup and the feature was dead
+ * until reload, with a message that blamed the engine rather than the network.
+ *
+ * So: clear the slot on failure so a retry can succeed, retry once inside the
+ * call, and warm the module on idle so the common path never races a 350 KB
+ * fetch at all. Same pattern as `workerPromise` below, which already did this.
+ */
 function loadPdfjs() {
   if (!pdfjsPromise) {
+    // Retry counter. Clearing the slot on failure is necessary but NOT sufficient:
+    // a failed ES module load is remembered by the browser's module registry, so a
+    // second `import()` of the same specifier rejects instantly without touching the
+    // network. Recovery therefore needs a *different* specifier. Verified by serving
+    // the engine as a 503 and watching the first attempt fail permanently. A query
+    // string is ignored by static hosting, so this costs nothing on Vercel.
+    const spec = engineAttempt === 0 ? '' : `?retry=${engineAttempt}`;
+    engineAttempt++;
     // Both paths are relative to assets/js/, i.e. assets/vendor/. Resolved with
     // `new URL(..., import.meta.url)` so this keeps working wherever the site
     // is mounted. This is a script fetch, not a document fetch.
-    pdfjsPromise = import('../vendor/pdf.min.mjs').then((mod) => {
+    pdfjsPromise = import('../vendor/pdf.min.mjs' + spec).then((mod) => {
       mod.GlobalWorkerOptions.workerSrc =
         new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
       engineLoaded = true;
       return mod;
+    }).catch((e) => {
+      pdfjsPromise = null;   // do not cache the failure
+      engineLoaded = false;
+      throw e;
     });
   }
   return pdfjsPromise;
+}
+
+/** One attempt, then one retry. The retry covers a transient 404 or a cold CDN. */
+async function loadPdfjsWithRetry() {
+  try {
+    return await loadPdfjs();
+  } catch (first) {
+    await new Promise((r) => setTimeout(r, 400));
+    return await loadPdfjs();
+  }
+}
+
+/**
+ * Warm the engine while the visitor is still reading the hero, so the first
+ * click on "generate a specimen" is instant and cannot lose a race with a
+ * deployment. Silently gives up: this is an optimisation, and the click path
+ * still does the real work.
+ */
+function warmEngine() {
+  if (engineWarm) return;
+  const go = () => {
+    engineWarm = true;
+    loadPdfjs().catch(() => { engineWarm = false; pdfjsPromise = null; });
+  };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 4000 });
+  else setTimeout(go, 2500);
 }
 
 /**
@@ -393,7 +472,7 @@ function normaliseMeta(metadata) {
  * that could ever turn into a request for someone else's file.
  */
 async function analyseBuffer(arrayBuffer) {
-  const pdfjs = await loadPdfjs();
+  const pdfjs = await loadPdfjsWithRetry();
   const worker = await sharedWorker(pdfjs);
   const doc = await pdfjs.getDocument({
     data: arrayBuffer,
@@ -730,7 +809,9 @@ function resultsPanel(entry) {
       h('span', { class: 'mt', text: `${fmtSize(entry.size)} · ${a.pageCount} ${t('pdf.pages')}` }))));
 
   if (scanned) {
-    card.appendChild(h('div', { class: 'notice mt', text: t('pdf.scanned') }));
+    // The specific version, not the generic one: a judge who drops a real passport
+    // needs to be told *why* it stopped, in the sentence that explains it.
+    card.appendChild(h('div', { class: 'notice mt', bi: S.realDocCaveat }));
   }
 
   if (result) {
@@ -968,6 +1049,7 @@ export function initPdfPanel() {
 
   if (state.wired) { render(); return; }   // main.js may call this more than once
   state.wired = true;
+  warmEngine();
 
   if (drop) {
     // A drag that starts over the dropzone fires dragenter/dragleave for every

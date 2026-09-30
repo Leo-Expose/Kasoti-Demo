@@ -38,7 +38,8 @@ const EM = '—';
    zone read, all five check digits evaluated, a digit altered, both failures
    reported, and the beginning of a second run. */
 const T = {
-  char: 26,      // one MRZ character revealed
+  char: 16,      // one MRZ character revealed. 26ms read as 'nothing is happening';
+              // the zone now ghosts in first, so a quicker sweep looks intentional
   term: 15,      // one value x weight = product term
   settle: 230,   // pause once a check's sum is on screen
   preTamper: 420,
@@ -153,14 +154,19 @@ const state = {
   stepIndex: 0,
   steps: null,
   running: false,
-  userPaused: false,   // set by visitor interaction; only resumeHeroDemo() clears it
-  hidden: false,       // set by document.hidden; clears itself on focus
+  userPaused: false,   // deliberate stop via pauseHeroDemo(); only resumeHeroDemo() clears it
+  outOfView: false,    // scrolled past — a *suspension*, lifts on scroll back
+  engaged: false,      // visitor is reading/interacting elsewhere — also a suspension
+  hidden: false,
   reduced: false,
   nodes: null,
   disposers: [],
   observer: null,
   mq: null,
   mounted: false,
+  sawFirstObserverEntry: false,
+  watchdog: null,
+  holding: false,   // true while the finished frame is held before a rebuild
 };
 
 /* ------------------------------------------------------------------ helpers */
@@ -203,20 +209,31 @@ const fmt = (n) => (typeof n === 'number' && Number.isFinite(n) ? n.toLocaleStri
  * Three numbers, one caveat. Every figure is read from the evaluation record at
  * runtime; a missing key or a failed fetch yields an em-dash, never a zero.
  */
+/** The evaluation counters, fetched at most once per page load. */
+let countersPromise = null;
+function loadCounters() {
+  if (!countersPromise) {
+    countersPromise = fetch(EVALRUN_URL)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => (json && typeof json === 'object' && json.counters ? json.counters : null))
+      // A failed load is remembered as a resolved null so we do not retry on every
+      // toggle, but it is cleared on the next full page load by definition.
+      .catch(() => null);
+  }
+  return countersPromise;
+}
+
 async function renderBrief(mount) {
   const set = (i, text) => {
     const n = mount.querySelector(`[data-slot="${i}"]`);
     if (n) n.textContent = text;
   };
 
-  let counters = null;
-  try {
-    const res = await fetch(EVALRUN_URL, { cache: 'no-store' });
-    if (res.ok) {
-      const json = await res.json();
-      if (json && typeof json === 'object' && json.counters) counters = json.counters;
-    }
-  } catch { /* offline, blocked, or renamed: em-dashes stand in */ }
+  // Fetched once per page load, not once per render. `initHeroDemo()` is re-run on
+  // every language toggle, and `cache: 'no-store'` meant each toggle put a request
+  // on the wire for a file that cannot have changed. The counters are a property
+  // of the evaluation record, not of the language.
+  const counters = await loadCounters();
 
   // A stale brief is worse than an empty one: main.js may have rebuilt the strip
   // while this fetch was in flight, so bail out if our mount is gone.
@@ -457,6 +474,10 @@ function reset() {
   const n = state.nodes;
   n.instrument.setAttribute('data-verdict', 'PENDING');
   n.instrument.setAttribute('data-tampered', '0');
+  // Label the empty tape as what it is. Without this the panel spent one frame
+  // showing the previous phase's label over a blanked tape, which reads as a
+  // glitch rather than as the start of the next cycle.
+  setPhase('phaseReveal');
   for (const field of CHECK_ORDER) {
     const row = n.byField.get(field);
     if (!row) continue;
@@ -529,13 +550,30 @@ function schedule(fn, ms) {
 
 function tick() {
   if (!state.running || !state.steps) return;
-  const step = state.steps[state.stepIndex];
-  if (!step) {                       // story complete: rebuild and go again
+
+  if (state.holding) {
+    // The finished frame has been held. Rebuild and start the story over.
+    state.holding = false;
     state.stepIndex = 0;
     reset();
+  } else if (!state.steps[state.stepIndex]) {
+    // Story complete: hold the finished frame before rebuilding.
+    //
+    // This used to reset() immediately and hold afterwards, which blanked the tape
+    // for the whole 1.3 s breath. The payoff frame — the tamper, the red characters,
+    // "document number check digit failed, composite failed" — is the one thing
+    // worth leaving on screen, and it was the one thing that got wiped.
+    //
+    // The order of the two branches matters and was got wrong once: with the
+    // `!steps[i]` test first, the timer re-armed on every tick and the `holding`
+    // branch below it was unreachable, so the loop spun on the hold forever and
+    // never restarted the story.
+    state.holding = true;
     schedule(tick, T.hold);
     return;
   }
+
+  const step = state.steps[state.stepIndex];
   state.stepIndex++;
   step.fn();
   schedule(tick, step.ms || T.char);
@@ -543,9 +581,18 @@ function tick() {
 
 function startLoop() {
   if (state.running || !state.steps) return;
-  if (state.userPaused || state.hidden) return;
+  // The guard used to be `userPaused || hidden` only, which was correct before the
+  // scroll and focus suspensions existed and silently wrong after. It is written
+  // out from `reconcileLoop`'s condition rather than kept in sync by hand.
+  if (!wantsLoop()) return;
   state.running = true;
   schedule(tick, 320);
+}
+
+/** The single condition. `reconcileLoop` and `startLoop` must agree by construction. */
+function wantsLoop() {
+  return !state.userPaused && !state.outOfView && !state.engaged
+    && !state.hidden && !state.reduced;
 }
 
 function stopLoop() {
@@ -555,20 +602,41 @@ function stopLoop() {
 
 /* ------------------------------------------------------------------ public */
 
-/** Stop the loop and leave it stopped. */
-export function pauseHeroDemo() {
-  state.userPaused = true;
-  stopLoop();
-  // freeze on a complete, valid frame rather than mid-reveal, so the panel is
-  // never blank and never looks broken to someone who scrolls back up
-  if (state.nodes) renderStaticFrame();
+/**
+ * The one place that decides whether the loop runs.
+ *
+ * Every trigger — scroll position, focus, tab visibility, reduced motion — goes
+ * through here rather than calling startLoop/stopLoop itself. That is what makes a
+ * permanently-dead instrument impossible: there is no path that can stop the loop
+ * without recording why, and no state in which "it should be running" and "it is
+ * not running" can disagree.
+ */
+function reconcileLoop() {
+  if (!state.mounted) return;
+  const shouldRun = wantsLoop();
+
+  if (shouldRun) {
+    if (!state.running) startLoop();
+  } else {
+    stopLoop();
+    // Freeze on a complete frame, never mid-reveal, so the panel is never blank
+    // and never looks broken to someone who scrolls back up.
+    if (state.nodes) renderStaticFrame();
+  }
 }
 
-/** Start the loop again, unless the visitor paused it or the tab is hidden. */
+/** Stop the loop and leave it stopped until resumeHeroDemo(). */
+export function pauseHeroDemo() {
+  state.userPaused = true;
+  reconcileLoop();
+}
+
+/** Start the loop again, unless a suspension still applies. */
 export function resumeHeroDemo() {
   state.userPaused = false;
-  if (state.reduced || state.hidden) { renderStaticFrame(); return; }
-  startLoop();
+  state.outOfView = false;
+  state.engaged = false;
+  reconcileLoop();
 }
 
 /** Build (or rebuild) the instrument and the brief strip. Safe to call twice. */
@@ -584,7 +652,11 @@ export function initHeroDemo() {
     : false;
   state.hidden = document.hidden;
   state.userPaused = false;
+  state.outOfView = false;
+  state.engaged = false;
+  state.sawFirstObserverEntry = false;
   state.running = false;
+  state.holding = false;
   state.stepIndex = 0;
 
   if (briefMount) renderBrief(briefMount);
@@ -633,35 +705,68 @@ export function initHeroDemo() {
 
   /* ---- interaction: the visitor always wins ---- */
 
-  // Scrolled past the instrument. The trigger is "the instrument is entirely
-  // above the top of the viewport", inset by the height of the sticky nav — not a
-  // visibility ratio, and not the hero as a whole: the instrument sits low in a
-  // hero taller than a laptop viewport, so it leaves the screen well before the
-  // hero does, and it is the instrument that must not keep moving.
+  // Scrolled past the instrument, so it must not keep moving. The trigger is
+  // "the instrument is entirely above the top of the viewport", inset by the
+  // height of the sticky nav — not a visibility ratio, and not the hero as a
+  // whole: the instrument sits low in a hero taller than a laptop viewport, so it
+  // leaves the screen well before the hero does, and it is the instrument that
+  // must not keep moving.
+  //
+  // TWO THINGS THIS MUST NOT DO, both of which it did:
+  //
+  //  1. Treat the observer's FIRST callback as a verdict. That callback fires once
+  //     on registration, before layout has necessarily settled, and a single
+  //     spurious `!isIntersecting` used to call pauseHeroDemo() — which sets a
+  //     flag nothing clears — so the instrument died after one phase and never
+  //     reached the tamper. It never resumed. The payoff animation, the whole
+  //     point of the panel, simply did not play.
+  //  2. Only ever pause. Scrolling past and back left it permanently dead.
+  //
+  // So: act on transitions only, and treat "out of view" as a suspension that
+  // lifts when the instrument comes back.
   const inst = $('hero-instrument');
   if (inst && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (!e.isIntersecting && state.mounted) { pauseHeroDemo(); return; }
+        if (!state.mounted) return;
+        if (!state.sawFirstObserverEntry) { state.sawFirstObserverEntry = true; continue; }
+        state.outOfView = !e.isIntersecting;
+        reconcileLoop();
       }
     }, { rootMargin: '-72px 0px 0px 0px', threshold: 0 });
     io.observe(inst);
     state.observer = io;
   }
 
-  // focused a control in the lab, the corpus card or the PDF panel
+  // focused a control in the lab, the corpus card or the PDF panel. Also a
+  // suspension: scroll back to the hero and it starts again.
   const onFocusIn = (e) => {
     if (!state.mounted) return;
     const t = e.target;
-    if (t && t.closest && t.closest('#lab, #corpus, #pdf, #verdicts, .ticker')) pauseHeroDemo();
+    if (t && t.closest && t.closest('#lab, #corpus, #pdf, #verdicts, .ticker')) {
+      state.engaged = true;
+      reconcileLoop();
+    }
   };
   document.addEventListener('focusin', onFocusIn);
   state.disposers.push(() => document.removeEventListener('focusin', onFocusIn));
 
+  // Any scroll or focus settles "engaged": if the visitor is back up in the hero
+  // with the instrument on screen, the loop is wanted again.
+  const release = () => {
+    if (!state.mounted) return;
+    if (state.outOfView || state.hidden || state.reduced) return;
+    if (!state.engaged) return;
+    state.engaged = false;
+    reconcileLoop();
+  };
+  window.addEventListener('scroll', release, { passive: true });
+  state.disposers.push(() => window.removeEventListener('scroll', release));
+  document.addEventListener('focusout', () => { /* handled on the next scroll */ });
+
   const onVis = () => {
     state.hidden = document.hidden;
-    if (state.hidden) stopLoop();
-    else if (!state.userPaused) startLoop();
+    reconcileLoop();
   };
   document.addEventListener('visibilitychange', onVis);
   state.disposers.push(() => document.removeEventListener('visibilitychange', onVis));
@@ -670,8 +775,7 @@ export function initHeroDemo() {
     state.mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const onMq = () => {
       state.reduced = state.mq.matches;
-      if (state.reduced) { stopLoop(); renderStaticFrame(); }
-      else if (!state.userPaused) startLoop();
+      reconcileLoop();
     };
     if (state.mq.addEventListener) state.mq.addEventListener('change', onMq);
     state.disposers.push(() => {
@@ -681,8 +785,21 @@ export function initHeroDemo() {
 
   state.mounted = true;
 
-  if (state.reduced) renderStaticFrame();
-  else startLoop();
+  // Watchdog. Every trigger above is an event, and events get missed: an
+  // IntersectionObserver can fire before layout settles, a scroll can be absorbed
+  // by scroll-snap, a tab can be restored without a visibilitychange in some
+  // browsers. The instrument then sits in a state where it should be running and
+  // is not, and the payoff animation — the whole point of the panel — never plays.
+  // One reconcile per second is free and makes every missed event self-healing.
+  // It cannot start the loop when it should be stopped: `wantsLoop()` is the same
+  // predicate, so the watchdog only ever repairs the running/stopped mismatch.
+  state.watchdog = setInterval(reconcileLoop, 1000);
+  state.disposers.push(() => clearInterval(state.watchdog));
+
+  // Go through the same decision point as every other trigger, so a freshly
+  // mounted instrument cannot come up in a different state from one that was
+  // merely resumed.
+  reconcileLoop();
 }
 
 /**

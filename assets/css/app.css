@@ -322,7 +322,7 @@ table.data th {
   color: var(--ink-3); font-weight: 500; padding: 9px 12px 9px 0;
   border-bottom: 1px solid var(--rule-2); white-space: nowrap;
 }
-table.data td { padding: 8px 12px 8px 0; border-bottom: 1px solid #16191e; font-variant-numeric: tabular-nums; }
+table.data td { padding: 8px 12px 8px 0; border-bottom: 1px solid #16191e; font-variant-numeric: tabular-nums; vertical-align: top; }
 table.data td.n { text-align: right; }
 table.data tr:last-child td { border-bottom: 0; }
 table.data .lbl { color: var(--ink-2); }
@@ -424,7 +424,6 @@ pre.console {
 .limit .mk { font-family: var(--mono); color: var(--amber); font-size: 1rem; line-height: 1.5; }
 .limit h4 { margin: 0 0 4px; font-size: .98rem; }
 .limit p { margin: 0; color: var(--ink-2); font-size: .88rem; }
-.limit .fix { font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-top: 8px; }
 
 /* ---------- footer ---------- */
 footer { padding: 46px 0 66px; border-top: 1px solid var(--rule); color: var(--ink-3); font-size: .85rem; }
@@ -535,7 +534,8 @@ footer .mono { font-size: .78rem; }
 .instrument-line { font-size: clamp(.58rem, 1.4vw, .76rem); }
 /* An unrevealed character is a lit block rather than a gap, so the tape always
    reads as 44 positions wide instead of a line that grows. */
-.tape-line .f-pending { color: transparent; background: #12151a; }
+.tape-line .f-pending { color: #2b323b; background: #12151a; }
+.tape-line.instrument-line .f-pending { color: #333b45; }
 
 .instrument-checks { padding: 0 13px 2px; }
 .icheck { padding: 5px 0; border-top: 1px solid var(--rule); }

@@ -167,17 +167,21 @@
 
     <div class="grid2">
       <div>
-        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a PDF file">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
-          <div class="big" data-en="Choose a PDF, or drop one here" data-hi="PDF चुनें, या यहाँ छोड़ें">Choose a PDF, or drop one here</div>
-          <div class="sub" data-en="PDF only · 4 MB maximum · nothing is uploaded" data-hi="केवल PDF · अधिकतम 4 MB · कुछ भी अपलोड नहीं">PDF only · 4 MB maximum · nothing is uploaded</div>
+        <div class="card">
+          <h4 data-en="Start here — no document needed" data-hi="यहाँ से शुरू करें — कोई दस्तावेज़ चाहिए ही नहीं">Start here — no document needed</h4>
+          <p style="font-size:.9rem;color:var(--ink-2);margin-bottom:14px" data-en="This builds a PDF in this tab — no upload, no server, nothing fetched — with a real ICAO 9303 zone inside it, and runs the same check digits the field app runs. Two are made: one intact, one with a single digit changed." data-hi="यह इसी टैब में एक PDF बनाता है — कोई अपलोड नहीं, कोई सर्वर नहीं, कुछ भी फ़ेच नहीं — जिसमें एक असली ICAO 9303 क्षेत्र होता है, और वही चेक डिजिट चलाता है जो फ़ील्ड ऐप चलाता है। दो बनते हैं: एक सही, एक में एक अंक बदला हुआ।">This builds a PDF in this tab — no upload, no server, nothing fetched — with a real ICAO 9303 zone inside it, and runs the same check digits the field app runs. Two are made: one intact, one with a single digit changed.</p>
+          <button class="btn primary" id="pdf-sample" type="button" data-en="Generate the two specimens" data-hi="दो नमूने बनाएँ">Generate the two specimens</button>
         </div>
-        <input type="file" id="file-input" accept="application/pdf,.pdf" class="hidden">
 
         <div class="card mt">
-          <h4 data-en="No passport handy?" data-hi="पासपोर्ट नहीं है?">No passport handy?</h4>
-          <p style="font-size:.86rem;color:var(--ink-2);margin-bottom:12px" data-en="Builds a PDF in this tab, on the spot, with a real MRZ inside — one valid, one with a single digit altered. Nothing is fetched." data-hi="इसी टैब में, तुरंत, एक असली MRZ वाला PDF बनाता है — एक सही, एक में एक अंक बदला हुआ। कुछ भी फ़ेच नहीं होता।">Builds a PDF in this tab, on the spot, with a real MRZ inside — one valid, one with a single digit altered. Nothing is fetched.</p>
-          <button class="btn sm" id="pdf-sample" type="button" data-en="Generate a specimen" data-hi="एक नमूना बनाएँ">Generate a specimen</button>
+          <h4 data-en="Or bring your own" data-hi="या अपना दस्तावेज़ लाएँ">Or bring your own</h4>
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a PDF file">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+            <div class="big" data-en="Choose a PDF, or drop one here" data-hi="PDF चुनें, या यहाँ छोड़ें">Choose a PDF, or drop one here</div>
+            <div class="sub" data-en="PDF only · 4 MB maximum · nothing is uploaded" data-hi="केवल PDF · अधिकतम 4 MB · कुछ भी अपलोड नहीं">PDF only · 4 MB maximum · nothing is uploaded</div>
+          </div>
+          <input type="file" id="file-input" accept="application/pdf,.pdf" class="hidden">
+          <p style="font-size:.82rem;color:var(--ink-3);margin:14px 0 0" data-en="About your own document: a passport PDF is usually a scan, and a scan has no text layer for us to read — the OCR that handles it needs the native build. Try it anyway; we will say exactly what we found and, if there is no text layer, we will say that rather than guess." data-hi="आपके अपने दस्तावेज़ के बारे में: पासपोर्ट PDF आमतौर पर स्कैन होता है, और स्कैन में पढ़ने के लिए टेक्स्ट लेयर नहीं होती — उसे पढ़ने वाला OCR मूल बिल्ड चाहिए। फिर भी कोशिश करें; हम बताएँगे कि हमें ठीक क्या मिला, और यदि टेक्स्ट लेयर नहीं है तो अनुमान लगाने के बजाय वही बताएँगे।">About your own document: a passport PDF is usually a scan, and a scan has no text layer for us to read — the OCR that handles it needs the native build. Try it anyway; we will say exactly what we found and, if there is no text layer, we will say that rather than guess.</p>
         </div>
 
         <div class="filelist" id="filelist"></div>

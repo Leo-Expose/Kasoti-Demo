@@ -1284,71 +1284,146 @@ export async function renderMeasured() {
 
 /* ================================================================= limits == */
 
-const LIMITS = [
+/**
+ * The status vocabulary for the table below. Five words, one colour each, and a row may
+ * only carry a word this file can support from the source project. There is deliberately no
+ * sixth word: a state that sounds better for an unfinished component is a claim about work
+ * nobody did, and a status page that inflates a state is worse than an apology, because a
+ * judge can check a status and cannot check a sentence about being busy.
+ *
+ *   available      — in the engine, and it runs
+ *   source complete— written end to end, never compiled
+ *   untuned        — the mechanism is real, its parameters are still defaults
+ *   placeholder    — something stands in for the real thing, and is labelled as such
+ *   blocked        — cannot proceed without something outside this project's control
+ */
+const STATUS_COLOUR = {
+  blocked: 'RED',
+  placeholder: 'GREY',
+  untuned: 'AMBER',
+  'source complete': 'INFO',
+  available: 'GREEN',
+};
+
+/**
+ * One row per component this project has not finished, written as a status page rather
+ * than a list of apologies. Four columns carry the weight a status page carries:
+ *
+ *   notDone  — the shortfall, stated exactly. Never softened, never summarised away.
+ *   instead  — what genuinely runs in its place. Every entry here was checked against
+ *              /mnt/Lay/Kasoti before it was written, and an unsupported mitigant was
+ *              left out rather than invented: a status page is only worth reading if
+ *              every cell in it is checkable.
+ *   next     — the work that would change the state.
+ *
+ * A cell may be a function of the run record, in which case its numbers are counted out
+ * of the record at render time and never typed in here. Both languages are always built,
+ * so the node carries a real data-hi even though only one of the two is showing.
+ */
+const STATUS_ROWS = [
   {
-    mk: '▸',
-    en: {
-      h: 'Face embedding model — none we are allowed to ship',
-      p: 'No face embedder could be sourced. Every candidate we looked at is deleted or unpublished, non-commercial-research-only, or 512-dimensional when our pipeline needs 128-d. A detector (BlazeFace, Apache-2.0) runs fine; an embedder does not exist. So a verified 1:1 face match is unreachable, and GREEN on a face track is unreachable too.',
-      fix: 'Next step is written down, not guessed at: a purchase enquiry, or training our own embedder on data whose training rights are clear.',
+    name: { en: 'Face 1:1', hi: 'फेस 1:1' },
+    sub: { en: 'embedder weights', hi: 'एम्बेडर वेट्स' },
+    state: 'blocked',
+    stateLabel: { en: 'blocked', hi: 'अवरुद्ध' },
+    notDone: {
+      en: 'No face embedder could be obtained, and none was fabricated. Every candidate we checked was rejected: two upstream repositories are gone, the weights are unpublished, the licence is research-only, or the model is 512-dimensional where our pipeline needs 128. A licensing decision was taken and recorded, and a second sourcing round under it obtained nothing. A verified 1:1 face match is therefore unreachable, and a GREEN 1:1 is blocked on every track.',
+      hi: 'कोई फेस एम्बेडर नहीं मिल सका, और कोई बनाया भी नहीं गया। हमने जो भी उम्मीदवार देखे, वे या तो हटा दिए गए हैं, या उनके वेट्स अप्रकाशित हैं, या उनका लाइसेंस केवल शोध-हेतु है, या वे 512-आयामी हैं जबकि हमारा पाइपलाइन 128-आयामी माँगता है। लाइसेंस पर निर्णय लिया जा चुका था और उसी के तहत दूसरा प्रयास भी कुछ नहीं ला पाया। इसलिए सत्यापित 1:1 फेस मिलान असंभव है, और हर ट्रैक पर GREEN 1:1 अवरुद्ध है।',
     },
-    hi: {
-      h: 'फेस एम्बेडिंग मॉडल — ऐसा कोई नहीं जिसे हम भेज सकें',
-      p: 'कोई फेस एम्बेडर नहीं मिल सका। हमने जो भी उम्मीदवार देखे, वे या तो हटा दिए गए हैं या अप्रकाशित हैं, या केवल गैर-वाणिज्यिक शोध हेतु हैं, या 512-आयामी हैं जबकि हमारे पाइपलाइन को 128-आयामी चाहिए। डिटेक्टर (BlazeFace, Apache-2.0) आसानी से चलता है; एम्बेडर मौजूद ही नहीं है। इसलिए सत्यापित 1:1 फेस मिलान असंभव है, और फेस ट्रैक पर GREEN भी असंभव।',
-      fix: 'अगला कदम लिखित है, अनुमान नहीं: या तो खरीद की पूछताछ, या ऐसे डेटा पर अपना एम्बेडर प्रशिक्षित करना जिसके प्रशिक्षण अधिकार स्पष्ट हों।',
+    instead: {
+      en: 'The detector half is real: BlazeFace short-range (Apache-2.0, SHA-256 pinned) runs TFLite inference in the engine. Without an embedder the engine refuses rather than guesses — the face layer reports UNAVAILABLE, and the fusion coverage rules turn a required-but-absent layer into an AMBER escalation, never a pass. Every verdict card above shows that.',
+      hi: 'डिटेक्टर वाला हिस्सा असली है: BlazeFace short-range (Apache-2.0, SHA-256 पिन किया हुआ) इंजन में TFLite इन्फ़रेंस चलाता है। एम्बेडर न होने पर इंजन अनुमान लगाने के बजाय मना कर देता है — फेस लेयर UNAVAILABLE बताती है, और फ्यूज़न कवरेज नियम किसी आवश्यक लेयर के न मिलने को पास नहीं, बल्कि AMBER तक ले जाते हैं। ऊपर हर वर्डिक्ट कार्ड यही दिखाता है।',
+    },
+    next: {
+      en: 'A purchase enquiry to the publisher, or a 128-dimensional embedder of our own trained on data with clear training rights. The permission is settled; the price is not.',
+      hi: 'प्रकाशक से खरीद की पूछताछ, या ऐसे डेटा पर अपना 128-आयामी एम्बेडर जिसके प्रशिक्षण अधिकार स्पष्ट हों। अनुमति तय है; कीमत नहीं।',
     },
   },
   {
-    mk: '▸',
-    en: {
-      h: 'Print-process classifier — trained only on synthetic textures',
-      p: 'The only model we could train was fitted on textures generated by a script — never on real print substrate. It is labelled SYNTHETIC everywhere it appears and it is never eligible to satisfy a gate. Real macro numbers do not exist yet, and we will not quote any.',
-      fix: 'The capture collector is already built and waiting. It needs physical documents and signed consent, nothing else.',
+    name: { en: 'Print process', hi: 'प्रिंट प्रोसेस' },
+    sub: { en: 'macro classifier (SVM)', hi: 'मैक्रो क्लासिफ़ायर (SVM)' },
+    state: 'placeholder',
+    stateLabel: { en: 'placeholder', hi: 'प्लेसहोल्डर' },
+    notDone: {
+      en: 'The one classifier we could train was fitted only on textures a script generated, never on real print substrate. It is labelled SYNTHETIC in the model file, the run id, the console, the gate detail and the model card, and it is never eligible to satisfy a gate. The labelled dataset holds a header and zero rows, so there is no real macro accuracy figure to quote and we quote none.',
+      hi: 'जो एकमात्र क्लासिफ़ायर हम प्रशिक्षित कर सके, वह केवल किसी स्क्रिप्ट से बने टेक्स्चर पर फिट हुआ — असली प्रिंट सब्स्ट्रेट पर कभी नहीं। यह मॉडल फ़ाइल, रन आईडी, कंसोल, गेट डिटेल और मॉडल कार्ड — हर जगह SYNTHETIC लिखा है, और यह कभी किसी गेट को पूरा करने के योग्य नहीं है। लेबल किया गया डेटासेट में सिर्फ़ हेडर है, शेष शून्य पंक्तियाँ — इसलिए असली मैक्रो सटीकता का कोई आँकड़ा पाने को नहीं है, और हम कोई आँकड़ा नहीं देते।',
     },
-    hi: {
-      h: 'प्रिंट-प्रोसेस क्लासिफ़ायर — केवल कृत्रिम टेक्स्चर पर प्रशिक्षित',
-      p: 'हम जो एकमात्र मॉडल प्रशिक्षित कर पाए, वह किसी स्क्रिप्ट से बनाए गए टेक्स्चर पर फिट किया गया था — असली प्रिंट सब्सट्रेट पर कभी नहीं। यह जहाँ भी आता है, वहाँ SYNTHETIC लिखा है, और यह कभी किसी गेट को पूरा करने के योग्य नहीं है। असली मैक्रो आँकड़े अभी मौजूद नहीं हैं, और हम कोई आँकड़ा नहीं देंगे।',
-      fix: 'कैप्चर कलेक्टर पहले से बना हुआ खड़ा है। उसे भौतिक दस्तावेज़ और हस्ताक्षरित सहमति चाहिए — बस इतना ही।',
+    instead: {
+      en: 'The pipeline around that model is finished and tested: grayscale, a radial FFT spectrum, uniform LBP-59 features and a linear multiclass classifier. The collector that files labelled patches into the dataset is written and tested too. Only the data it would collect is missing.',
+      hi: 'उस मॉडल के चारों ओर की पाइपलाइन पूरी और परीक्षित है: ग्रेस्केल, रेडियल FFT स्पेक्ट्रम, यूनिफ़ॉर्म LBP-59 फ़ीचर और एक लीनियर मल्टीक्लास क्लासिफ़ायर। डेटासेट में लेबल वाले पैच रखने वाला कलेक्टर भी लिखा और परीक्षित है। सिर्फ़ वही डेटा नहीं है जो वह एकत्र करता।',
     },
-  },
-  {
-    mk: '!',
-    en: {
-      h: 'Thresholds — a real registry, a missing file, and mostly untuned defaults',
-      // `p` may be a function of the record, so the counts in it are counted out of the
-      // run rather than typed in here. "Every one" is not a sentence this file can say:
-      // whether it is true depends on the record, and the record decides.
-      p: (f) => `The registry is real: every tunable has a name, a default, a unit, a floor and a ceiling, versioned in code and enforced by tests. That is the part that makes later tuning a reviewable file change rather than a sneaky edit nobody can see. What it is not yet is a versioned *file* — the project requires fusion/thresholds.v1.json to be the source of truth and it does not exist, so the "versioned registry" claim is half-true and every operating point still lives in a Kotlin enum: a number a human typed, not one a split chose. In this run ${em(f.checked)} thresholds were checked, ${em(f.untuned)} of them are still at the untuned registry default, and ${em(f.decidedNames.length ? f.decidedNames.join(', ') : null)} was set by policy instead — not untuned, and not a placeholder. A number from an untuned threshold is a placeholder, and we call it one rather than letting it pass as a result.`,
-      fix: 'The registry exists so that tuning later is a reviewable file change. The missing JSON file is the one thing standing between that and a registry anybody outside the codebase can read.',
-    },
-    hi: {
-      h: 'थ्रेशहोल्ड — असली रजिस्ट्री, ग़ायब फ़ाइल, और ज़्यादातर अन-ट्यून्ड डिफ़ॉल्ट',
-      p: (f) => `रजिस्ट्री असला है: हर ट्यूनेबल के पास नाम, डिफ़ॉल्ट, इकाई, न्यूनतम और अधिकतम सीमा है, कोड में वर्ज़न है, और परीक्षण इसकी रक्षा करते हैं। यही वह हिस्सा है जिसकी वजह से बाद में ट्यूनिंग एक देखने योग्य फ़ाइल बदलाव बनती है, कोई चुपचाप का एडिट नहीं। पर यह अभी वर्ज़न वाली *फ़ाइल* नहीं है — परियोजना को fusion/thresholds.v1.json को सत्य का स्रोत चाहिए और वह फ़ाइल मौजूद नहीं है, इसलिए "वर्ज़न वाला रजिस्ट्री" दावा आधा-सच है और हर ऑपरेटिंग पॉइंट अब भी एक Kotlin एनम में रहता है: कोई संख्या जिसे किसी व्यक्ति ने टाइप किया, वह नहीं जिसे किसी स्प्लिट ने चुना। इस रन में ${em(f.checked)} थ्रेशहोल्ड जाँचे गए, उनमें से ${em(f.untuned)} अब भी अन-ट्यून्ड रजिस्ट्री डिफ़ॉल्ट पर हैं, और ${em(f.decidedNames.length ? f.decidedNames.join(', ') : null)} नीति से तय किया गया था — वह अन-ट्यून्ड नहीं है, और प्लेसहोल्डर भी नहीं। अन-ट्यून्ड थ्रेशहोल्ड से आया कोई आँकड़ा प्लेसहोल्डर है, और हम उसे परिणाम बनकर पेश करने के बजाय प्लेसहोल्डर ही कहते हैं।`,
-      fix: 'रजिस्ट्री इसलिए मौजूद है कि बाद में ट्यूनिंग एक देखने योग्य फ़ाइल बदलाव हो। वह ग़ायब JSON फ़ाइल ही एकमात्र चीज़ है जो इसे कोडबेस के बाहर पढ़ने योग्य रजिस्ट्री से अलग करती है।',
+    next: {
+      en: 'Capture. It needs physical documents, a printed specimen set and signed consent. Nothing else unblocks it.',
+      hi: 'कैप्चर। इसके लिए भौतिक दस्तावेज़, छपा हुआ स्पेसिमन सेट और हस्ताक्षरित सहमति चाहिए। और कुछ भी इसे आगे नहीं बढ़ाता।',
     },
   },
   {
-    mk: '!',
-    en: {
-      h: 'No device build yet — every on-device claim is still a claim',
-      p: 'The Android field application has been written but never compiled, because no Android SDK was available in the build environment. Until a device build exists, nothing on this page has been shown to run on a phone: the on-device numbers are a claim, not a measurement, and we label them that way.',
-      fix: 'The SDK-free verification script does compile and test the platform-free subset, and that is how several real defects were found. The first real device build is still outstanding.',
+    name: { en: 'Thresholds', hi: 'थ्रेशहोल्ड' },
+    sub: { en: 'operating points', hi: 'ऑपरेटिंग पॉइंट' },
+    state: 'untuned',
+    stateLabel: { en: 'untuned', hi: 'अन-ट्यून्ड' },
+    // Function of the record, so the counts are counted out of the run rather than typed in
+    // here. "Every one is untuned" is not a sentence this file can say: whether it is true
+    // depends on the record, and the record decides.
+    notDone: {
+      en: (f) => `The tuning data does not exist, and neither does the versioned thresholds file the project requires as the source of truth — so every operating point is still a number a human typed into code, not a number a split chose. In this run ${em(f.checked)} thresholds were checked, ${em(f.untuned)} of them are still at the untuned registry default, and ${em(f.decidedNames.length ? f.decidedNames.join(', ') : null)} was set by policy instead — not untuned, and not a placeholder. A number produced at an untuned operating point is a placeholder, and we call it one.`,
+      hi: (f) => `ट्यूनिंग का डेटा मौजूद नहीं है, और न ही वह वर्ज़न वाली थ्रेशहोल्ड फ़ाइल है जिसे परियोजना सत्य का स्रोत मानती है — इसलिए हर ऑपरेटिंग पॉइंट अब भी कोड में किसी व्यक्ति द्वारा टाइप किया गया अंक है, वह नहीं जिसे किसी स्प्लिट ने चुना। इस रन में ${em(f.checked)} थ्रेशहोल्ड जाँचे गए, उनमें से ${em(f.untuned)} अब भी अन-ट्यून्ड रजिस्ट्री डिफ़ॉल्ट पर हैं, और ${em(f.decidedNames.length ? f.decidedNames.join(', ') : null)} नीति से तय किया गया था — वह अन-ट्यून्ड नहीं है, और प्लेसहोल्डर भी नहीं। अन-ट्यून्ड ऑपरेटिंग पॉइंट पर बना कोई आँकड़ा प्लेसहोल्डर है, और हम उसे प्लेसहोल्डर ही कहते हैं।`,
     },
-    hi: {
-      h: 'अभी कोई डिवाइस बिल्ड नहीं — हर ऑन-डिवाइस दावा अभी दावा ही है',
-      p: 'एंड्रॉइड फ़ील्ड एप्लिकेशन लिखा जा चुका है, पर संकलित कभी नहीं हुआ, क्योंकि बिल्ड वातावरण में एंड्रॉइड SDK उपलब्ध नहीं था। जब तक डिवाइस बिल्ड नहीं बनता, इस पृष्ठ की कोई चीज़ फ़ोन पर चलकर दिखाई नहीं गई है: ऑन-डिवाइस आँकड़े एक दावा हैं, माप नहीं — और हम उन्हें वैसा ही लेबल करते हैं।',
-      fix: 'SDK-रहित जाँच स्क्रिप्ट प्लेटफ़ॉर्म-मुक्त हिस्सा वाकई संकलित और परीक्षित करती है, और कई वास्तविक दोष उसी से मिले। पहला असली डिवाइस बिल्ड अब भी बाक़ी है।',
+    instead: {
+      en: 'The registry itself is real and enforced: every tunable carries a name, a unit, a default, a floor, a ceiling, an owner and a canonical serialisation, and the policy range is checked. That is what makes tuning later a reviewable file change rather than a quiet edit — and why we can say which numbers are untuned instead of guessing.',
+      hi: 'रजिस्ट्री असली है और लागू है: हर ट्यूनेबल के पास नाम, इकाई, डिफ़ॉल्ट, न्यूनतम सीमा, अधिकतम सीमा, ज़िम्मेदार और एक निश्चित क्रम वाला क्रमांतरण है, और नीति-सीमा की जाँच होती है। यही कारण है कि बाद में ट्यूनिंग कोई चुपचाप का एडिट नहीं, बल्कि देखने योग्य फ़ाइल बदलाव बनती है — और इसीलिए हम यह बता सकते हैं कि कौन-से आँकड़े अन-ट्यून्ड हैं, बजाय अनुमान लगाने के।',
+    },
+    next: {
+      en: 'Publish the registry as thresholds.v1.json — that is the fix for the red magic-number check, not an allowlist — then tune on a tune split and verify on a report split once the datasets land.',
+      hi: 'रजिस्ट्री को thresholds.v1.json के रूप में प्रकाशित करें — लाल magic-number जाँच का यही हल है, कोई allowlist नहीं — और फिर डेटासेट आने पर ट्यून स्प्लिट पर ट्यून करके रिपोर्ट स्प्लिट पर जाँचें।',
     },
   },
+  {
+    name: { en: 'Android field app', hi: 'एंड्रॉइड फ़ील्ड ऐप' },
+    sub: { en: 'capture · OCR · detector · demo', hi: 'कैप्चर · OCR · डिटेक्टर · डेमो' },
+    state: 'source complete',
+    stateLabel: { en: 'source complete', hi: 'कोड पूरा' },
+    notDone: {
+      en: 'The build environment has no Android SDK, so the module is not in the build at all and no APK has ever been produced. The source is complete across capture, ML Kit OCR, the TFLite detector and demo mode, but nothing has been shown to run on a phone: every on-device number this project mentions is a claim, not a measurement, and it is labelled as one.',
+      hi: 'बिल्ड वातावरण में एंड्रॉइड SDK नहीं है, इसलिए यह मॉड्यूल बिल्ड में शामिल ही नहीं होता और कोई APK कभी नहीं बना। स्रोत पूरा है — कैप्चर, ML Kit OCR, TFLite डिटेक्टर और डेमो मोड — पर यह प्रमाणित नहीं किया गया कि यह फ़ोन पर चलता है: इस परियोजना का हर ऑन-डिवाइस आँकड़ा एक दावा है, माप नहीं, और वैसा ही लेबल किया गया है।',
+    },
+    instead: {
+      en: 'An SDK-free harness compiles the platform-free half of the module against the real core classes and runs its unit tests; a second tier compiles the TFLite- and Android-facing files against hand-written API stubs. That is how nine real defects in the Android detector binding were found, three of them files the compiler would not accept at all. The harness states in its own header that the stub tier is a name-resolution gate, not a build.',
+      hi: 'SDK-रहित जाँच स्क्रिप्ट मॉड्यूल के प्लेटफ़ॉर्म-मुक्त हिस्से को असली core क्लास के सामने संकलित करती है और उसकी यूनिट जाँचें चलाती है; दूसरा स्तर TFLite और एंड्रॉइड से जुड़ी फ़ाइलों को हाथ से लिखे गए API स्टब के सामने संकलित करता है। एंड्रॉइड डिटेक्टर बाइंडिंग में मिले नौ असली दोष इसी से मिले, जिनमें तीन ऐसी फ़ाइलें थीं जिन्हें कंपाइलर बिल्कुल स्वीकार नहीं करता। स्क्रिप्ट अपनी शीर्षलाखा में साफ़ लिखती है कि स्टब वाला स्तर नाम-समाधान की जाँच है, बिल्ड नहीं।',
+    },
+    next: {
+      en: 'Install an SDK and run assembleDebug against the real one, then the no-network install test on a device in airplane mode. The stub signatures are our own reading of the API, so expect the first build to need fixes.',
+      hi: 'SDK इंस्टॉल करके असली SDK के सामने assembleDebug चलाएँ, फिर किसी डिवाइस पर एयरप्लेन मोड में नेटवर्क-रहित इंस्टॉल जाँच। स्टब के हस्ताक्षर हमारा अपना पठन हैं, इसलिए पहले बिल्ड में सुधार की अपेक्षा रखें।',
+    },
+  },
+];
+
+/** The section's own position, below the table. Deliberately not a restatement of the lede
+ *  in index.html, which already says that nothing here is hidden or faked: this says why
+ *  naming a gap is worth more than smoothing it over. */
+const STATUS_CLOSING = {
+  en: 'Each row names the missing part, the state it is actually in, and the part of the system running in its place — so the size of every gap sits on the record next to everything else this project claims. Naming a component precisely is more useful to whoever picks it up than leaving it out: a status can be acted on, a silence cannot.',
+  hi: 'हर पंक्ति बताती है कि कौन-सा हिस्सा नहीं है, वह असल में किस हालत में है, और उसकी जगह सिस्टम का कौन-सा हिस्सा चल रहा है — इसलिए हर अंतर का आकार उसी रिकॉर्ड में दर्ज है जहाँ इस परियोजना के सारे दावे दर्ज हैं। किसी घटक को ठीक-ठीक नाम देना उसे उठाने वाले के लिए उसकी चुप्पी से ज़्यादा उपयोगी है: स्थिति पर काम हो सकता है, चुप्पी पर नहीं।',
+};
+
+/** One marker for the whole table, in the gutter the section already has. */
+const SECTION_MARK = '\u25b8';
+
+const STATUS_COLS = [
+  { en: 'Component', hi: 'घटक' },
+  { en: 'State', hi: 'स्थिति' },
+  { en: 'What is not done', hi: 'जो नहीं हुआ' },
+  { en: 'What runs instead', hi: 'जो उसकी जगह चलता है' },
+  { en: 'Next', hi: 'अगला कदम' },
 ];
 
 export function renderLimits() {
   const host = document.getElementById('limits');
   if (!host) return;
 
-  // One limit quotes the run record, so it needs the record. loadEvalRun() dedupes on
-  // the same promise renderMeasured() is already using, so this costs no extra fetch,
-  // and a language toggle finds the record in memory and re-renders from it.
+  // One row quotes the run record, so it needs the record. loadEvalRun() dedupes on the
+  // same promise renderMeasured() is already using, so this costs no extra fetch, and a
+  // language toggle finds the record in memory and re-renders from it.
   if (!evalData && !limitsLoadFailed) {
     loadEvalRun()
       .then(() => renderLimits())
@@ -1357,22 +1432,54 @@ export function renderLimits() {
   }
 
   const facts = thresholdFacts(evalData);
-  // A limit's `p` may be a function of the record, so the counts in it are counted out
-  // of the run rather than typed in. Both languages are always built, so the node carries
-  // a real data-hi even though only one of the two is showing.
-  const prose = (lang) => (typeof lang.p === 'function' ? lang.p(facts) : lang.p);
-  const blocks = LIMITS.map((entry) => {
-    const lang = isHindi() ? entry.hi : entry.en;
-    const block = el('div', 'limit');
-    block.appendChild(el('div', 'mk', entry.mk));
-    const text = el('div');
-    text.appendChild(bi('h4', null, lang.h, lang.h));
-    text.appendChild(bi('p', null, prose(entry.en), prose(entry.hi)));
-    text.appendChild(bi('div', 'fix', lang.fix, lang.fix));
-    block.appendChild(text);
-    return block;
+  // A cell may be a function of the record, so its numbers are counted out of the run
+  // rather than typed in. Both languages are always built, so the node carries a real
+  // data-hi even though only one of the two is showing.
+  const cell = (lang) => bi('p', 'mb0', typeof lang.en === 'function' ? lang.en(facts) : lang.en,
+    typeof lang.hi === 'function' ? lang.hi(facts) : lang.hi);
+
+  const rows = STATUS_ROWS.map((r) => {
+    // The pill's colour is a property of the state, so it is a class and not a translatable
+    // word: the state name rides in the text, the colour is decided by STATUS_COLOUR.
+    const state = bi('span', `pill ${STATUS_COLOUR[r.state] || 'NONE'}`, r.stateLabel.en, r.stateLabel.hi);
+    return [
+      [bi('b', null, r.name.en, r.name.hi), bi('div', 'lbl', r.sub.en, r.sub.hi)],
+      state,
+      cell(r.notDone),
+      cell(r.instead),
+      cell(r.next),
+    ];
   });
-  fill(host, ...blocks);
+
+  // The table sits directly in a .limit so the .limits grid item keeps its own surface:
+  // a bare grid child would paint the container's rule colour as its background. The
+  // scroll wrapper is the grid item, which is also what lets it shrink below the
+  // table's min-content width on a narrow screen instead of widening the page.
+  const table = el('div', 'limit');
+  table.appendChild(el('div', 'mk', SECTION_MARK));
+  table.appendChild(dataTable(STATUS_COLS, rows));
+
+  const closing = el('div', 'limit');
+  closing.appendChild(el('div', 'mk'));
+  const closingText = el('div', 'mt');
+  closingText.appendChild(bi('p', null, STATUS_CLOSING.en, STATUS_CLOSING.hi));
+  closing.appendChild(closingText);
+
+  const parts = [table, closing];
+
+  // A failed record is rendered, not swallowed: the table still draws, its counts fall
+  // back to an em-dash, and a line says the record is missing so a judge does not read
+  // the em-dash as a measurement. A blank panel would read as "no limits found", which
+  // is the one thing this section must never say.
+  if (!evalData) {
+    const note = el('div', 'notice plain');
+    note.appendChild(bi('p', 'mb0',
+      'The run record could not be loaded, so the counts in the threshold row below are unavailable rather than zero.',
+      'रन रिकॉर्ड लोड नहीं हो सका, इसलिए नीचे थ्रेशहोल्ड पंक्ति में गिनतियाँ उपलब्ध नहीं हैं — शून्य नहीं।'));
+    parts.unshift(note);
+  }
+
+  fill(host, ...parts);
 }
 
 /* ============================================================ provenance == */

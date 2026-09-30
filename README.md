@@ -1,13 +1,54 @@
 # KASOTI-Demo
 
-A static, zero-backend browser demo of **KASOTI**, a border-document-screening
-project. It is one HTML file, a stylesheet, six ES modules, a vendored copy of
-pdf.js, and about 1.3 MB of evaluation data. There is no build step, no server,
-no account, and no network call — the page runs in the tab it was opened in, and
-the documents you paste or drop into it never leave the machine.
+A static, zero-backend browser demo of **KASOTI**, a border travel-document
+screening project. It is one HTML file, one stylesheet, seven ES modules, a
+vendored copy of pdf.js, and 1.25 MB of recorded evaluation data. There is no
+build step, no server, no account and no network call. The page runs in the tab
+it was opened in, and any document pasted or dropped into it stays on the
+machine.
 
-This is a SIH submission aid and a self-check. It is **not** the product. See
-[What this demo is not](#what-this-demo-is-not).
+This repository is a SIH submission aid and a self-check. The shipping
+artefacts are elsewhere — see [What this is not](#what-this-is-not).
+
+---
+
+## Contents
+
+- [What this is not](#what-this-is-not)
+- [The honesty contract](#the-honesty-contract)
+- [What runs in the browser](#what-runs-in-the-browser)
+- [How it is verified](#how-it-is-verified)
+  - [The corpus self-check — 10,000 rows](#the-corpus-self-check--10000-rows)
+  - [Date-validation parity against the Kotlin — 1,092 specimens](#date-validation-parity-against-the-kotlin--1092-specimens)
+  - [The browser harness — 79 checks](#the-browser-harness--79-checks)
+  - [Reproducing these checks](#reproducing-these-checks)
+- [Defects found by verification](#defects-found-by-verification)
+  - [A residual the fixes do not remove](#a-residual-the-fixes-do-not-remove)
+- [Running it locally](#running-it-locally)
+- [Deploying to Vercel](#deploying-to-vercel)
+  - [Cache headers](#cache-headers)
+  - [What the page fetches](#what-the-page-fetches)
+- [Regenerating the data](#regenerating-the-data)
+- [Architecture and file map](#architecture-and-file-map)
+- [Known limitations](#known-limitations)
+- [Licences](#licences)
+
+---
+
+## What this is not
+
+The product is two things, both in the sibling repository at
+`/mnt/Lay/Kasoti`: an **offline Android field application** and a **desktop
+post-console**. This repository is a browser preview of one component of it.
+
+- It does not fuse layers, does not score, does not emit findings and does not
+  make a screening decision. It replays decisions made elsewhere, and re-derives
+  the check-digit arithmetic locally so that arithmetic can be inspected and
+  re-run.
+- It does not replace a hands-on device demonstration. It proves the arithmetic
+  and shows the measurement record. It stops there.
+- Every Android claim in the product repository is currently unproven. See
+  [Known limitations](#known-limitations) for the delivery status.
 
 ---
 
@@ -15,196 +56,328 @@ This is a SIH submission aid and a self-check. It is **not** the product. See
 
 Read this before quoting any number off this page.
 
-**1. The check-digit engine is a port, not an invention.**
-`assets/js/mrz.js` is a JavaScript port of the Kotlin in the sibling repo at
-`core/src/commonMain/kotlin/dev/kasoti/mrz/` (`MrzCheckDigit.kt`,
-`MrzParser.kt`, `MrzModel.kt`). What it implements is the **ICAO 9303 published
-standard** — repeating weights 7, 3, 1; characters `0–9` → `0–9`, `A–Z` → `10–35`,
-filler `<` → `0`; modulo 10. The arithmetic is the standard's, not KASOTI's. The
-port exists so a judge can verify the arithmetic by hand and so the corpus can be
-re-checked in the browser.
+**1. The check-digit engine is a port of a published standard, not an
+invention.** `assets/js/mrz.js` is a JavaScript port of the Kotlin at
+`core/src/commonMain/kotlin/dev/kasoti/mrz/` in the sibling repository
+(`MrzCheckDigit.kt`, `MrzParser.kt`, `MrzModel.kt`). What it implements is the
+**ICAO Doc 9303 published standard**: repeating weights 7, 3, 1; characters
+`0`–`9` → `0`–`9`, `A`–`Z` → `10`–`35`, filler `<` → `0`; modulo 10. The
+arithmetic is the standard's, not KASOTI's. The port exists so the arithmetic
+can be checked by hand and so the corpus can be re-verified in the browser.
 
-**2. How it was validated.** The shipped engine was run against all 10,000 rows
-of the real evaluation corpus (`data/corpus.txt`) and compared, row by row,
-against `expectedCaught` — the value the JVM harness recorded for that row.
+**2. Every number comes from one run.** Eval run id `eval-20260930-smoke-653a`,
+suite `smoke`, commit `58b8656` as recorded in `data/evalrun.json`. That file is
+a copy of the run's own `metrics.evalmetrics.json` and `metrics.json`:
+`runId`, `suite`, `commit`, `split`, `counters`, `measures`, `buckets` and
+`notes` are byte-identical to the run record, and `startedAtUtc`,
+`finishedAtUtc` and `governance` are copied from `metrics.json` unmodified.
+Every figure in `data/scenarios.json` was parsed out of a real console run by
+`tools/capture_real_output.py` and is regenerated by that script.
 
-> **Result: 10,000 / 10,000 rows in agreement.** For the 7,471 mutated rows the
-> JVM and this port agree on caught-vs-blind. The remaining 2,529 rows are unmutated
-> (`mutation=NONE`) and produce **0 false positives**. Every row therefore
-> behaves as the JVM recorded it, and the aggregate totals match exactly:
->
-> **2,529 valid · 6,725 detectable · 6,725 caught · 746 structurally blind · 0 false positives**
->
-> These are the counters in `data/evalrun.json`: `mrz.valid.rows`,
-> `mrz.mutate_catch.detectable_total`, `mrz.mutate_catch.detectable_caught` and
-> `mrz.mutate_catch.structurally_blind` under `counters`, and
-> `mrz.valid.false_positive_pct` (= 0) under `measures`.
-
-This was reproduced by running the shipped modules, not by reading them — see
-[How the fixes were verified](#how-the-fixes-were-verified).
-
-The 746 structurally blind rows are a property of the format, not a defect: they
-are TD1 documents where a field check digit was recomputed after the tampering,
-and TD1 has no composite digit to catch it. They are counted and reported, never
-folded into the headline number.
-
-**3. KASOTI's fusion rules are not re-implemented here at all.** Not in this
-repo, not in the browser, nowhere. `assets/js/` contains no fusion, no scoring,
-no finding codes and no verdict logic — grep the six modules for `VERDICT`,
-`RED`, `AMBER` and you will find only display constants, the replayed strings
-themselves, and CSS class names. The verdict panel (`#verdicts`) replays verbatim
-console transcripts captured from the real `:app-desktop` engine — the layers,
-findings, warnings, policy versions, and the final `VERDICT` line, in
-`data/transcripts/*.txt`. The page reads and displays them. The page says this
-too, in the section it replays.
-
-**4. Every number came from one run.** Eval run id `eval-20260930-smoke-653a`,
-commit `58b8656`, suite `smoke`. Every figure in `data/evalrun.json` was produced
-by the harness and copied verbatim; every figure in `data/scenarios.json` was
-parsed out of a real console run by `tools/capture_real_output.py`, and is
-regenerated by that script. Two caveats a reader should hold:
+Three caveats belong with that run:
 
 - The run recorded `commitDirty: true`, so `58b8656` identifies the commit but
   does not describe the whole working tree the numbers came from.
+- `58b8656` is no longer resolvable in the sibling repository, whose history has
+  been re-committed since the run and now holds two commits. The identifier is a
+  property of the run record, not a checkout a reader can make.
 - The scenario *titles and blurbs* in `data/scenarios.json` are authored prose
-  (`capture_real_output.py:58-109`), not engine output. Everything else in that
-  file is captured.
+  from the `SCENARIOS` block at `tools/capture_real_output.py:58-109`, not engine
+  output. Everything else in that file is captured.
 
-Note that this run's own verdict is `INCOMPLETE` (exit code 4): six thresholds
-were still at their untuned registry default and the macro/face metrics are
-uncalibrated because no device was attached. The demo shows that record rather
-than a tidied version of it.
+**3. KASOTI's fusion rules are not re-implemented here at all.** Not in this
+repository, not in the browser, nowhere. `assets/js/` contains no fusion, no
+scoring, no finding codes and no verdict logic. Grepping the seven modules for
+`VERDICT`, `RED` and `AMBER` returns 12 hits, all of them display
+infrastructure — the `VERDICT_PILL` colour map and the `KNOWN_SEVERITIES` list
+in `panels.js`, a pill class-name lookup, a governance-status-to-colour
+mapping, a row label table, two authored bilingual strings, and two comments in
+`pdfscan.js`. The other five modules return nothing at all.
+
+The verdict panel (`#verdicts`) replays verbatim console transcripts captured
+from the real `:app-desktop` engine — the layers, findings, warnings, policy
+versions and the final `VERDICT` line, in `data/transcripts/*.txt`. The page
+states this in the panel it replays.
+
+**4. The run's own verdict is `INCOMPLETE` (exit code 4).** Seven thresholds
+were checked and six were still at their untuned registry default, and the
+macro and face metrics are uncalibrated because no device was attached. The
+demo shows that record rather than a tidied version of it.
 
 ---
 
-## Defects found by verification — all five fixed
+## What runs in the browser
 
-This file records five defects that were found by *running* the demo and
-reading its output, not by reading its source. All five are fixed, and each fix
-carries a comment at the fix site explaining what went wrong, so the next person
-does not have to rediscover it. None of them is a live defect today.
+| Panel | What it does | Where the numbers come from |
+|---|---|---|
+| MRZ lab | Parses a pasted or dropped TD1/TD3 zone with the ported engine, shows every check digit's term-by-term working, and grades the document | computed live in the tab |
+| Corpus self-check | Re-runs all 10,000 corpus rows and compares the result to the recorded run | `data/corpus.txt`, fetched on button press |
+| PDF check | Extracts the text layer of a local PDF with pdf.js and scans it for MRZ candidates | the local file, read with `FileReader` |
+| Replayed verdicts | Shows five recorded screening verdicts with their layers and findings | `data/scenarios.json`, `data/transcripts/*.txt` |
+| Measured | Displays the evaluation record read at render time | `data/evalrun.json` |
 
-They are listed because "we verified this and here is what it caught" is a
-stronger claim than "we think it works", and because a reader who finds one of
-these by hand should be able to check the fix rather than re-derive it.
+The interface is English and Hindi throughout, with 82 string keys in
+`assets/js/i18n.js`, each declared as an explicit `[English, Hindi]` pair.
+Nothing remote is fetched: `index.html` and `assets/css/app.css` reference no
+external stylesheet, script, font or image. The URLs present in the tree are
+XML namespace identifiers and licence text, not endpoints.
 
-**1. Impossible dates rendered a green PASS — fixed. This was the worst one.**
-`mrz.js` is a port of the Kotlin `MrzParser`, and the Kotlin validates the two date
-fields with a *shared* error sink. The port's `isoFrom6()` built a private array,
-threw it away, and returned only a value — so date problems never reached
-`structuralErrors`. Measured before the fix: a TD3 with a birth date of `901332`
-(month 13), `900231` (31 February) or `900000` (day 00) all returned
-`allPassed === true` and `structuralErrors === []`. The demo rendered **"all
-check digits agree"** in green, because the 7-3-1 arithmetic genuinely does agree
-on those rows. The real engine refuses to grade them.
+Any measurement number displayed on the page is read from
+`data/evalrun.json` at render time rather than written into the markup. If that
+fetch fails, the affected tiles render an em dash. They never render a zero,
+because a zero here would read as a measurement.
 
-This is a fail-**open** on a document-screening tool, and a judge could have typed
-`901332` into the box and been told the document was fine. The fix routes date
-validation into the parser's shared sink (`assets/js/mrz.js`), and the verdict
-pill now gates on `structuralErrors.length` as well as `allPassed`
-(`assets/js/main.js`) — a check digit passing is not sufficient to declare a
-document real. Parity was proven by compiling the actual Kotlin
-`MrzParser.kt` + `MrzModel.kt` + `MrzCheckDigit.kt` + `CalendarDate.kt` with
-`kotlin-compiler-embeddable` 2.1.21 and diffing 1,092 date specimens against the
-JS: **0 differences** in `structuralErrors`, in the exposed value, and in
-`allChecksPassed`. The pre-fix JS differed on 844 of the 1,092.
+---
 
-The corpus self-check cannot see this class of bug, and the README says so
-honestly: the 7 mutation classes never mutate a date into an impossible value, so
-every row that gained a date error was already caught arithmetically. All six
-corpus counters are unchanged. Regression checks now live in the browser harness.
+## How it is verified
 
-**2. The corpus driver skipped half the rows — fixed.** `runCorpus()` shared one
-loop index between the outer chunk walk and the inner row loop, so the inner loop
-left `i` equal to `end` and the outer `i += CHUNK` then stepped past the next
-block. The function evaluated 5,000 of the 10,000 rows while still reporting
-`total: 10000` — a wrong number that looked right, which is the exact failure this
-project exists to catch. The inner loop now uses its own index (`base`).
-Comment: `assets/js/corpus.js:49-52`.
+Three independent methods. One ships with this repository; the other two were
+run for this verification and are described rather than shipped.
 
-**3. The agreement counter excluded the control rows — fixed.** `runCorpus()`
-`continue`d on `NONE` (unmutated) rows *before* the agreement check, so
-`agreements` topped out at 7,471 and the page rendered "7,471 / 10,000" — which
-reads as 2,529 disagreements when in fact all 10,000 rows agree. The self-check
-now runs on every row before any `continue`; the 2,529 control rows are covered
-by the false-positive count instead, which is 0. Comment:
-`assets/js/corpus.js:67-76`.
+### The corpus self-check — 10,000 rows
 
-**4. "Bit-identical on every row" was an overclaim — corrected.** The
-self-check compares one boolean per row: did this engine flag it, and did the
-recorded run flag it. Agreement on a boolean is not bit-identity, and 2,529 of the
-rows are only ever checked for *not* being flagged. The page now says "agrees with
-the recorded run on every row", states the comparison explicitly, and says which
-direction the control rows were checked in. The README's phrasing was always the
-accurate one; the page was not.
-
-**5. `assets/js/main.js` did not exist — written.** `index.html:206` loads it as
-the page entry point. The file wires the language toggle, the live MRZ lab, the
-corpus runner, the PDF panel and the replayed data panels. Its first version
-hand-wrote the lab specimens and three of them were the wrong length, so the
-parser correctly reported "unrecognised" and the panel looked broken; the
-specimens are now built from fields with every check digit computed by the same
-`computeDetailed()` the engine uses, which makes a malformed specimen impossible
-by construction. Comment: `assets/js/main.js:68-77`.
-
-Three further defects were found in the PDF panel — a file picker that never
-analysed anything (`input.value = ''` empties the live `FileList`), a rejected
-file leaving the previous document's verdict on screen, and a fresh 1.3 MB pdf.js
-worker per document. All fixed; see `assets/js/pdfscan.js` and the commit log.
-
-### How the fixes were verified
-
-Not by inspection. `assets/js/corpus.js` and `assets/js/mrz.js` were imported
-unmodified from this tree, `data/corpus.txt` was loaded through the module's own
-`loadCorpus()`, and `runCorpus()` was run to completion. Observed on
-2026-09-30 against `data/corpus.txt` as committed (10,000 rows, 1,255,934 bytes):
+The shipped modules were imported unmodified from this tree, `data/corpus.txt`
+was loaded through the module's own `loadCorpus()`, and `runCorpus()` was run to
+completion. The comparison is one boolean per row: did this engine flag the
+document, and did the recorded run flag it. Observed 2026-09-30 against
+`data/corpus.txt` as committed (10,000 rows, 1,255,934 bytes):
 
 | Quantity | Value | Traces to |
 |---|---|---|
-| `validRows` | 2,529 | `mrz.valid.rows` |
-| `detectable` | 6,725 | `mrz.mutate_catch.detectable_total` |
-| `caught` | 6,725 | `mrz.mutate_catch.detectable_caught` |
-| `blind` | 746 | `mrz.mutate_catch.structurally_blind` |
-| `falsePositives` | 0 | `mrz.valid.false_positive_pct` = 0 |
+| `validRows` | 2,529 | `counters.mrz.valid.rows` |
+| `detectable` | 6,725 | `counters.mrz.mutate_catch.detectable_total` |
+| `caught` | 6,725 | `counters.mrz.mutate_catch.detectable_caught` |
+| `blind` | 746 | `counters.mrz.mutate_catch.structurally_blind` |
+| `falsePositives` | 0 | `measures.mrz.valid.false_positive_pct` = 0 |
 | `agreements` | 10,000 | — (2,529 controls + 7,471 mutants) |
 | `disagreements` | 0 | — |
 | `disagreementsByKind` | `{}` | — |
 
-All seven per-mutation buckets reproduce the eval run's
-`buckets["MRZ catch rate by mutation"]` exactly: `NONE` 2,529 · `NAME_CHAR`
-1,393/1,393 caught · `FORMAT_BREAK` 1,383/1,383 · `DATA_CHAR` 1,371/1,371 ·
-`CHECK_DIGIT` 1,363/1,363 · `COMPOSITE_DIGIT` 576/576 · `RECOMPUTED_FIELD`
-1,385 rows of which 639 detectable, 639 caught, 746 blind. The run takes about
-120 ms for all 10,000 rows.
+> **Result: 10,000 / 10,000 rows in agreement.**
 
-**The date fix was verified differently, and more strongly.** Agreement with a
-recorded run cannot catch a bug in code the run never exercised, so the
-date-validation fix was checked against the Kotlin itself. The four real source
-files (`MrzParser.kt`, `MrzModel.kt`, `MrzCheckDigit.kt`, `CalendarDate.kt`) were
-compiled with `kotlin-compiler-embeddable` 2.1.21 and run over 1,092 date
-specimens — 6 years × 14 months × 13 day values, including all-filler, `ab`,
-` 1` and `9<` — and the output was diffed field by field against the fixed JS:
+The 7,471 mutated rows are compared on caught-versus-blind. The remaining 2,529
+are the unmutated controls (`mutation=NONE`), whose expected outcome is *not*
+flagged, so they are compared in the other direction and produce **0 false
+positives**. Every row therefore behaves as the JVM recorded it, and the
+aggregate totals match exactly.
 
-| | `structuralErrors` | exposed value | `allChecksPassed` |
+All seven per-mutation buckets reproduce the run's
+`buckets["MRZ catch rate by mutation"]`:
+
+| Mutation | Rows | Detectable | Caught | Blind |
+|---|---|---|---|---|
+| `NONE` | 2,529 | 0 | 0 | — |
+| `NAME_CHAR` | 1,393 | 1,393 | 1,393 | 0 |
+| `FORMAT_BREAK` | 1,383 | 1,383 | 1,383 | 0 |
+| `DATA_CHAR` | 1,371 | 1,371 | 1,371 | 0 |
+| `CHECK_DIGIT` | 1,363 | 1,363 | 1,363 | 0 |
+| `COMPOSITE_DIGIT` | 576 | 576 | 576 | 0 |
+| `RECOMPUTED_FIELD` | 1,385 | 639 | 639 | 746 |
+
+The run completes in roughly 150 ms for all 10,000 rows on the verification
+host (154 ms measured), with a yield to the event loop every 500 rows so the
+progress bar paints.
+
+**The 746 structurally blind rows are a property of the format, not a defect.**
+They are TD1 documents where a field check digit was recomputed after the
+tampering, and TD1 has no composite digit to catch it. They are counted and
+reported separately, never folded into the headline number.
+
+### Date-validation parity against the Kotlin — 1,092 specimens
+
+Agreement with a recorded run cannot catch a bug in code the run never
+exercised, so the date-validation fix was checked against the Kotlin itself.
+The four real source files — `MrzParser.kt`, `MrzModel.kt`,
+`MrzCheckDigit.kt` and `dev.kasoti.time.CalendarDate.kt` — were compiled with
+`kotlin-compiler-embeddable` 2.1.21 (the project's pinned compiler version) and
+run over 1,092 date specimens: 6 years × 14 months × 13 day values, including
+all-filler, `ab`, ` 1` and `9<`. The output was diffed field by field against
+the fixed JavaScript:
+
+| Comparison | `structuralErrors` | Exposed value | `allChecksPassed` |
 |---|---|---|---|
 | Kotlin vs fixed JS, 1,092 specimens | 0 differences | 0 differences | 0 differences |
 | Kotlin vs pre-fix JS | 844 differences | — | — |
 
-One deliberate divergence is documented rather than hidden: the Kotlin exposes the
-raw `YYMMDD` and the port exposes ISO, so the comparison was made as
+One deliberate divergence is documented rather than hidden: the Kotlin exposes
+the raw `YYMMDD` and the port exposes ISO, so the comparison was made as
 "JS value == ISO(Kotlin raw)". The demo needs the ISO form for display.
 
-**And in the browser**, on top of the Node checks: a headless-Chromium harness
-drives the real page and asserts 79 properties of the rendered DOM — the check
-arithmetic, both language round trips, the corpus totals, the replayed transcripts
-being byte-verbatim, the per-row table values, and that an impossible date yields
-**no verdict** rather than a pass.
+This measurement was a one-off differential, and its harness is not committed
+here. The method and the result are recorded so the check can be re-run or
+rewritten.
+
+### The browser harness — 79 checks
+
+On top of those two, a Chromium harness running headless drives the real page
+over the DevTools Protocol and asserts 79 properties of the rendered DOM: the
+check arithmetic, both language round trips, the corpus totals, the replayed
+transcripts being byte-verbatim, the per-row table values, and that an impossible
+date yields **no verdict** rather than a pass. It also fails on any console
+error or uncaught page error.
+
+| Group | Checks |
+|---|---|
+| page integrity | 6 |
+| hero structure | 6 |
+| language round trip | 14 |
+| MRZ lab | 22 |
+| corpus self-check | 10 |
+| replayed verdicts | 13 |
+| measurement + limits | 6 |
+| console health | 2 |
+| **Total** | **79** |
+
+The harness exits non-zero unless exactly 79 checks ran, so the count is
+enforced rather than asserted. It needs no browser-automation dependency — Node 18+
+and a `chromium` binary are enough. Like the differential, it is a development
+tool and is not committed here.
+
+### Reproducing these checks
+
+The corpus self-check is the only one of the three that ships the machinery to
+perform it. The page runs it in the tab: open the demo and press the corpus
+runner. The same check runs headlessly against the same committed modules:
+
+```bash
+cd Kasoti-Demo
+python3 -m http.server 8080 &
+```
+
+```js
+// check.mjs — Node 18+. Import from the repo; the shipped module is unmodified.
+import { loadCorpus, runCorpus } from './assets/js/corpus.js';
+
+// `loadCorpus()` defaults to the page-relative 'data/corpus.txt', which Node's
+// global fetch cannot resolve, so pass an absolute URL against the served tree.
+const rows = await loadCorpus('http://127.0.0.1:8080/data/corpus.txt');
+const r = await runCorpus(rows, null);
+console.log(r.agreements, r.disagreements.length, r.validRows, r.caught, r.blind, r.falsePositives);
+```
+
+Expected output: `10000 0 2529 6725 746 0`.
+
+`data/corpus.txt` is committed, so this reproduces without the sibling
+repository, a JDK or Gradle.
+
+---
+
+## Defects found by verification
+
+Five defects were found by *running* the demo and reading its output, not by
+reading its source. All five are fixed, and each fix carries a comment at the
+fix site explaining what went wrong. None is a live defect. They are recorded
+because a verified finding with a reproducible fix is a stronger claim than an
+assertion of correctness, and because a reader who finds one of these by hand
+should be able to check the fix rather than re-derive it.
+
+**1. Impossible dates rendered a green PASS. Fixed.** `mrz.js` is a port of the
+Kotlin `MrzParser`, and the Kotlin validates the two date fields through a
+*shared* error sink. The port's `isoFrom6()` built a private array, discarded
+it, and returned only a value — so date problems never reached
+`structuralErrors`.
+
+Measured on a valid TD3 corpus row with the birth date replaced by month 13,
+31 February or day 00 and **exactly the two check digits covering that field
+recomputed** so the arithmetic genuinely agrees:
+
+```
+all 5 check digits agree : true
+allPassed()              : true      <- the 7-3-1 arithmetic does agree
+structuralErrors         : ["BIRTH_DATE date '901332' is not a real calendar date"]
+exposed birthDate        : null
+```
+
+So the arithmetic passes and the document is still not real. Before the fix
+`structuralErrors` was `[]` and the panel rendered **"all check digits agree"**
+in green. This is a fail-**open** on a document-screening tool.
+
+The fix routes date validation into the parser's shared sink
+(`assets/js/mrz.js:148`, `validateDateField()`), and the verdict panel now
+gates on `structuralErrors.length` *before* `allPassed()`
+(`assets/js/main.js`, in `onMrzInput()`), so a passing check digit is not
+sufficient to declare a document real. An impossible date now renders "no
+verdict — the zone is not a real document".
+
+**The corpus self-check cannot see this class of bug, and that is a property of
+the comparison, not of the corpus.** The corpus does contain calendar-impossible
+dates: 52 of the 10,000 rows carry one (30 expiry, 22 birth), all of them
+`DATA_CHAR` mutations, and every one of them is also flagged by the check-digit
+arithmetic — which is what the run recorded, as `expectedCaught=true` for all
+52. The self-check compares a single boolean per row, so on those 52 rows the
+result is identical with and without the date fix. A boolean agreement check
+cannot distinguish a working date validator from a broken one. All six corpus
+counters are therefore unchanged by the fix, and the regression checks live in
+the browser harness instead.
+
+**2. The corpus driver skipped half the rows. Fixed.** `runCorpus()` shared one
+loop index between the outer chunk walk and the inner row loop, so the inner
+loop left `i` equal to `end` and the outer `i += CHUNK` then stepped past the
+next block. The function evaluated 5,000 of the 10,000 rows while still
+reporting `total: 10000` — a wrong number that looked right. The inner loop now
+uses its own index (`base`). Comment at `assets/js/corpus.js:49-52`.
+
+**3. The agreement counter excluded the control rows. Fixed.** `runCorpus()`
+continued on `NONE` rows *before* the agreement check, so `agreements` topped
+out at 7,471 and the page rendered "7,471 / 10,000" — which reads as 2,529
+disagreements when in fact all 10,000 rows agree. The self-check now runs on
+every row before any `continue`; the 2,529 control rows are covered in the
+false-positive direction instead, which is 0. Comment at
+`assets/js/corpus.js:67-76`.
+
+**4. "Bit-identical on every row" was an overclaim. Corrected.** The self-check
+compares one boolean per row: did this engine flag it, and did the recorded run
+flag it. Agreement on a boolean is not bit-identity, and 2,529 rows are only
+ever checked for *not* being flagged. The page now states the comparison
+explicitly and says which direction the control rows were checked in.
+
+**5. `assets/js/main.js` did not exist. Written.** `index.html` loads it as the
+page entry point. The file wires the language toggle, the live MRZ lab, the
+corpus runner, the PDF panel and the replayed data panels. Its first version
+hand-wrote the lab specimens and three of them were the wrong length, so the
+parser correctly reported "unrecognised" and the panel looked broken. The
+specimens are now built from field values with every check digit computed by the
+same `computeDetailed()` the engine uses, which makes a malformed specimen
+impossible by construction. Comment at `assets/js/main.js:74-81`.
+
+### Three further defects in the PDF panel — all fixed
+
+Also found by running the page, all fixed, each with a comment at the fix site
+in `assets/js/pdfscan.js`:
+
+- A file picker that never analysed anything. `input.files` returns the *same*
+  live `FileList` on every access, so the `input.value = ''` that allows
+  re-selecting the same file also emptied the list being read. The list is now
+  snapshotted first. (`pdfscan.js:1092-1099`)
+- A rejected file leaving the previous document's verdict on screen, and the
+  panel going blank while a new file was still being parsed — which reads as the
+  panel glitching, and puts a finished-looking verdict next to a file that has
+  not been read. Both states are now rendered explicitly.
+  (`pdfscan.js:843`, `872`, `940`)
+- A fresh 1.65 MB pdf.js worker per document: five documents meant five fetches
+  of the worker script and five worker targets, each handed its own copy of the
+  document's bytes. The worker is now created once and reused.
+  (`pdfscan.js:383-397`)
+
+### A residual the fixes do not remove
+
+`allPassed()` is defined in terms of check digits alone. As the measurement in
+defect 1 shows, it returns `true` for a document whose every check digit agrees
+but whose date fields are not real calendar dates. That is not a regression —
+it is also how the engine behaves today — and it does not weaken any number in
+this document, because the corpus comparison uses the same boolean the run
+recorded.
+
+The safety therefore rests entirely on every caller checking
+`structuralErrors.length` as well, which `assets/js/main.js` does and which the
+browser harness asserts. Any future caller of `allPassed()` that skips the
+structural check reintroduces the fail-open.
 
 ---
 
 ## Running it locally
 
-A static HTTP server is required — ES modules and `fetch` do not work over
+A static HTTP server is required. ES modules and `fetch` do not work over
 `file://`.
 
 ```bash
@@ -214,15 +387,15 @@ python3 -m http.server 8080
 ```
 
 **This is also the offline fallback for the live demo.** If venue wifi fails,
-clone or copy the directory to the presenting laptop, run the command above, and
-the demo works with the network cable pulled. There is no CDN dependency, no
-font request, no analytics, and no API. That is the point of the no-build,
-no-backend shape: the failure mode of "the internet is down" does not exist for
-this page.
+copy the directory to the presenting laptop, run the command above, and the demo
+works with the network cable pulled. There is no CDN dependency, no font
+request, no analytics and no API. "The internet is down" is not a failure mode
+this page has.
 
 ## Deploying to Vercel
 
-Connect the git repo in the Vercel dashboard. `vercel.json` supplies the rest:
+Connect the git repository in the Vercel dashboard. `vercel.json` supplies the
+rest:
 
 | Setting | Value | Why |
 |---|---|---|
@@ -233,38 +406,44 @@ Connect the git repo in the Vercel dashboard. `vercel.json` supplies the rest:
 | `cleanUrls` | `true` | Serves `/lab` for `/lab.html`. Harmless here — the lab is an anchor in `index.html`, not a separate file. |
 | `trailingSlash` | `false` | |
 
-Nothing is compiled, so a deploy cannot fail at build time. If it is not
-responding, the failure is network or DNS, not the build.
-
-**On the corpus file.** `data/corpus.txt` is 1,255,934 bytes uncompressed
-(1.2 MB) and gzips to 341,038 bytes; Vercel compresses text responses
-automatically. It is **not** fetched on page load. `loadCorpus()` in
-`assets/js/corpus.js` has exactly one call site — `onRunCorpus()` in
-`assets/js/main.js:370` — and `onRunCorpus()` is only reached from the
-`#corpus-run` button listener registered in `boot()` at `main.js:504`. Nothing
-in the module graph touches it at import time. So the page load fetches are
-exactly: `index.html`, `assets/css/app.css`, the five ES modules
-(`mrz.js`, `i18n.js`, `corpus.js`, `panels.js`, `pdfscan.js`, plus `main.js`),
-`data/evalrun.json`, `data/scenarios.json`, and the five transcript files under
-`data/transcripts/`. `assets/vendor/pdf.min.mjs` and its worker are additionally
-fetched, lazily, the first time a PDF is actually opened. `data/corpus.txt` is
-not among them until the button is pressed.
+Nothing is compiled, so a deploy cannot fail at build time. If the deployed
+site is not responding, the fault is network or DNS, not the build.
 
 ### Cache headers
 
-The tradeoff is that nothing here is content-hashed, so a redeploy changes
-`assets/**` in place. A long `max-age` would leave judges on last week's CSS.
-The policy in `vercel.json`:
+Nothing here is content-hashed, so a redeploy changes `assets/**` in place. A
+long `max-age` would leave visitors on the previous CSS. The policy in
+`vercel.json`:
 
-- `index.html`, `*.html`, `data/**` → `public, max-age=0, must-revalidate`. A
-  redeploy is visible immediately, which matters more than a few KB of savings
-  when the whole point is that judges see the current numbers.
-- `assets/**` → `public, max-age=3600, must-revalidate`. Hourly, and always
-  revalidated, so a redeploy lands within the hour without a stale tab surviving
-  a demo.
+- `/index.html`, `/:path*.html`, `/data/:path*` → `public, max-age=0,
+  must-revalidate`. A redeploy is visible immediately, which matters more than
+  a few KB when the point is that visitors see the current numbers.
+- `/assets/:path*` → `public, max-age=3600, must-revalidate`. Hourly, and always
+  revalidated, so a redeploy lands within the hour without a stale tab
+  surviving a demonstration.
 - `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer` on
   everything. No `X-Frame-Options`, because embedding the page in a projector
   dashboard is a reasonable thing to want.
+
+### What the page fetches
+
+`data/corpus.txt` is 1,255,934 bytes uncompressed and 341,038 bytes at default
+gzip level; Vercel compresses text responses automatically. It is **not** fetched
+on page load. `loadCorpus()` has exactly one call site, inside `onRunCorpus()` in
+`assets/js/main.js`, and `onRunCorpus()` is reachable only from the `#corpus-run`
+button listener registered in `boot()`. Nothing in the module graph touches it
+at import time.
+
+The page load fetches are therefore exactly: `index.html`,
+`assets/css/app.css`, the seven ES modules (`mrz.js`, `i18n.js`, `corpus.js`,
+`panels.js`, `pdfscan.js`, `herodemo.js` and `main.js`), `data/evalrun.json`,
+`data/scenarios.json`, and the five transcript files under `data/transcripts/`
+(preloaded together when the verdict panel renders). `data/corpus.txt` joins them
+only when the runner is pressed. `assets/vendor/pdf.min.mjs` and
+`assets/vendor/pdf.worker.min.mjs` are fetched separately and lazily, the first
+time a PDF is opened.
+
+---
 
 ## Regenerating the data
 
@@ -274,91 +453,109 @@ cd Kasoti-Demo
 python3 tools/capture_real_output.py /mnt/Lay/Kasoti
 ```
 
-This needs the sibling KASOTI repo checked out at the matching commit, a JDK 17
-for Gradle, and `eval/runs/eval-20260930-smoke-653a/` to already exist in it. The
-run id is pinned as a constant at `tools/capture_real_output.py:37`; if that
-directory is absent the script exits immediately rather than inventing a run. It
-copies the eval run's `mrz_corpus.jsonl` into `data/corpus.txt` in pipe-delimited
-form (`corpus_compact()`, `capture_real_output.py:209`), then runs the real
-`:app-desktop` console five times — once per scenario, via
-`./gradlew :app-desktop:run --args="screen --image demo-specimen/specimen.png
---fields <sidecar> --track <track> --demo"` — writing each raw transcript to
-`data/transcripts/<id>.txt`, and finally rewrites `data/evalrun.json` and
-`data/scenarios.json`. The five sidecar `.json` files it writes under `data/`
-are deleted again on the way out.
+This needs the sibling KASOTI repository checked out, a JDK 17 for Gradle, and
+`eval/runs/eval-20260930-smoke-653a/` to already exist in it. The run id is
+pinned as a constant at `tools/capture_real_output.py:37`; if that directory is
+absent the script exits immediately at `:245` rather than inventing a run.
+
+In order, the script copies the run's `mrz_corpus.jsonl` into
+`data/corpus.txt` in pipe-delimited form (`corpus_compact()`,
+`capture_real_output.py:209`), assembles `data/evalrun.json` from the run's
+`metrics.json` and `metrics.evalmetrics.json`, runs the real `:app-desktop`
+console five times — once per scenario — and writes each raw transcript to
+`data/transcripts/<id>.txt`:
+
+```bash
+./gradlew -q :app-desktop:run \
+  --args=screen --image demo-specimen/specimen.png \
+  --fields <sidecar> --track <track> --demo
+```
+
+Finally it rewrites `data/scenarios.json`. The five sidecar `.json` files it
+writes under `data/` are deleted again on the way out.
 
 **The script aborts loudly if a scenario's real verdict changes.** Each scenario
-declares an expected verdict; if the engine prints a different one, the script
+declares an expected verdict; if the engine prints a different one the script
 exits with an error instead of writing the new value
-(`tools/capture_real_output.py:279-283`). It also aborts if a transcript parses
-zero layers, so a silently broken parser cannot quietly produce an empty panel
-(`capture_real_output.py:284-285`). Both are deliberate. The demo's numbers are
+(`capture_real_output.py:280`). It also aborts if a transcript parses zero
+layers, so a silently broken parser cannot quietly produce an empty panel
+(`capture_real_output.py:285`). Both are deliberate: the demo's numbers are
 supposed to be the product's numbers, and a silent drift between them is the one
-failure mode this repo cannot recover from. Re-read the demo copy, then commit
-the diff as a deliberate change — never suppress the abort.
+failure mode this repository cannot recover from. Re-read the demo copy, then
+commit the diff as a deliberate change — never suppress the abort.
 
 **What the script does not capture.** It parses only the `LAYERS`, `FINDINGS`,
 `WARNINGS` and `POLICY` sections, plus the `VERDICT` / `ACTION` / `EN` / `HI` /
-`auditTip` lines. The engine's own preamble banner is *not* parsed, so the two
-`·` lines that open every transcript — the SYNTHETIC macro-model warning and
+`auditTip` lines. Policy lines are folded into the emitted `warnings` array. The
+engine's own preamble banner is *not* parsed, so three `·`-prefixed lines
+survive only inside the raw `data/transcripts/*.txt`, which the page shows in a
+collapsed `<details>`: the macro-model provenance line and the
+`SYNTHETIC MACRO MODEL` warning that open every transcript, and the
 `· DEMO RUN — the decision is stamped demoMode and is not evidence of anything
-(invariant I7)` — survive only inside the raw `data/transcripts/*.txt`, which the
-page shows in a collapsed `<details>`. They are not in `data/scenarios.json` and
-are not rendered in any scenario card. See the honesty audit in HANDOFF before a
-judge sees this.
+(invariant I7)` line that closes them. None of the three appears in
+`data/scenarios.json` or in any rendered scenario card.
+
+---
+
+## Architecture and file map
+
+Seven ES modules, one entry point, no bundler. `index.html` loads
+`assets/js/main.js` as a module; everything else is reached through that import
+graph.
+
+| Path | What it is |
+|---|---|
+| `index.html` | The whole app. Markup only, no framework, no bundler. |
+| `assets/css/app.css` | One stylesheet, dark theme. No `@import`, no `@font-face`, no remote `url()`; `system-ui` and `ui-monospace` stacks only. |
+| `assets/js/mrz.js` | The ICAO 9303 engine. Port of the sibling repository's Kotlin. Exports `parse`, `allPassed`, `computeDetailed`, `findMrzCandidates` and friends. |
+| `assets/js/corpus.js` | Corpus loader and runner. Both fixed defects carry a comment at the fix site. |
+| `assets/js/i18n.js` | English/Hindi string table (82 keys, each an explicit pair) and the toggle. |
+| `assets/js/panels.js` | The replay surfaces: scenarios, measured, limits, provenance. Every measurement number is read from the JSON at render time; the only literals are display precision and the 0–100 bar clamp. |
+| `assets/js/pdfscan.js` | The PDF panel and the in-browser specimen generator. |
+| `assets/js/herodemo.js` | The live hero instrument and the judge-brief strip. Builds its zone from field values and walks `computeDetailed()`'s own `steps[]`, `sum` and `expected`; reads its three headline numbers out of `data/evalrun.json`. |
+| `assets/js/main.js` | The entry point `index.html` loads. Wires the language toggle, the live MRZ lab, the corpus runner, the PDF panel and the replayed data panels. |
+| `assets/vendor/pdf.min.mjs`<br>`assets/vendor/pdf.worker.min.mjs` | pdf.js 4.10.38, Apache-2.0. |
+| `data/corpus.txt` | 10,000 rows, pipe-delimited, from the eval run. 1,255,934 bytes. |
+| `data/evalrun.json` | Counters, measures, buckets, governance — verbatim from the run record. |
+| `data/scenarios.json` | 5 scenarios: layers, findings, verdict, EN/HI strings. |
+| `data/transcripts/*.txt` | Unedited console transcripts, one per scenario. |
+| `tools/capture_real_output.py` | Regenerates everything in `data/`. Needs JDK 17 and the sibling repository. |
+| `vercel.json` | Deployment config. No build step. |
+
+There is no `samples/` directory. The MRZ lab's specimen buttons are built at
+runtime into `#mrz-samples` by `buildSamples()` in `assets/js/main.js`.
+
+---
+
+## Known limitations
+
+| Area | State | Next step |
+|---|---|---|
+| Android field app | **Source complete, device build SDK-gated.** 10,632 lines of Kotlin across 40 files in `app-android/`. The Android Gradle Plugin has never assembled the module: no APK has been produced, and there is no install, no bundle-size figure and no airplane-mode proof. Every Android claim is therefore unproven. | Install an Android SDK on a runner (`local.properties` → `sdk.dir=`, or `ANDROID_HOME`) and run `./gradlew :app-android:assembleDebug`. Expect fixes on the first such build — see the row below. |
+| Android verification without an SDK | `app-android/tools/verify-offline.sh` compiles `:ui`, the field layer, the face-detector maths and `JcaCrypto`, then runs **189 tests: 189 passed, 0 failed, exit 0** (re-measured 2026-09-30). Tier 2 additionally name-resolves the Android-facing and TFLite sources against hand-written stubs. | This is a name-resolution gate, not a build, and the script says so: *"That is a syntax-and-name-resolution result only. It is NOT a build: resource XML, aapt2, d8, R8, Compose, dependency resolution and the real SDK/TFLite signatures are all still unverified."* The stub signatures are this project's reading of `Context`, `Log` and `Interpreter`, so a member read at the wrong type checks on the host and fails on a device. |
+| Development host | Carries no Android SDK: no `sdk.dir` in `local.properties`, `ANDROID_HOME` unset, no SDK directory present. This makes the device build a runner requirement rather than a code gap. | Provision an SDK-equipped runner. |
+| Evaluation numbers | From a host JVM, not a device. The run's governance block records `deviceId: TEST-HARNESS-JVM`, `present: false`, `accepted: false`. The macro and face metrics are uncalibrated and the run is marked `INCOMPLETE`. | Run the suite on a NAMED device with a calibration card no older than 7 days and a build fingerprint recorded. |
+| Thresholds | Seven checked, six still at their untuned registry default. `thresholds.v1.json` does not exist in the sibling repository. | Populate the registry, then re-tune against real data. |
+| Fusion | Not re-implemented in this repository. The verdict panel replays captured transcripts. | None here by design — the fusion engine lives in `:core`. |
+| Structural coverage | 746 of 10,000 rows are structurally blind: TD1 has no composite digit, so a recomputed field check digit is not detectable by MRZ arithmetic. Reported separately, never folded into the headline. | This is a property of ICAO 9303, and it is why the other layers exist. |
+| Commit reproducibility | The run recorded `commitDirty: true`, and `58b8656` no longer resolves in the sibling repository's history. The numbers are pinned to a run record, not to an inspectable source state. | Re-run the harness on a clean tree and cite a resolvable commit. |
+| Scenario prose | The scenario titles and blurbs in `data/scenarios.json` are authored, from `capture_real_output.py:58-109`. Everything else in that file is captured. | None planned; the authored text is labelled as authored on the page. |
+| Corpus coverage of date bugs | 52 corpus rows carry a calendar-impossible date, and all 52 are also caught by the check-digit arithmetic, so the boolean self-check cannot distinguish a working date validator from a broken one. | Covered by the Kotlin differential and the browser harness instead. |
+| Licences | No `LICENSE` file exists in this repository or in the sibling repository. Terms are prose only. | Formalise before any distribution beyond a hackathon submission. |
+
+---
 
 ## Licences
 
 - **pdf.js 4.10.38** is vendored under `assets/vendor/` (`pdf.min.mjs`,
-  `pdf.worker.min.mjs`). Apache-2.0, per the Mozilla PDF.js project; the licence
-  banner is intact at the top of `pdf.min.mjs`.
-- **MRZ arithmetic** is ICAO 9303. ICAO specifications are not open-licensed
-  text; the check-digit algorithm in parts 4, 5, and 6 is implemented here from
+  `pdf.worker.min.mjs`). Apache-2.0, per the Mozilla PDF.js project. The
+  licence banner is intact at the top of both files.
+- **MRZ arithmetic** is ICAO Doc 9303. ICAO specifications are not open-licensed
+  text; the check-digit algorithm in parts 4, 5 and 6 is implemented here from
   the published standard.
-- **KASOTI itself** has no `LICENSE` file in the sibling repo either
-  (`docs/STATUS.md` R-I). Its terms exist only as prose in `docs/README.md`
-  §"License / use": prototype for SIH demonstration and research evaluation, not
-  for operational deployment without MHA legal/technical clearance. There is no
-  licence file to point a judge at in either repo.
-
-## What this demo is not
-
-The product is an **offline Android field application** and a **desktop
-post-console**, both in the sibling repo. This is a browser preview of one
-component of it.
-
-- **It is not the product.** It does not fuse layers, does not score, does not
-  emit findings, and does not make a screening decision. It replays decisions
-  that were made elsewhere.
-- **The Android app has never been compiled.** There is no Android SDK in the
-  build environment, so `:app-android` has never produced an APK. Every Android
-  claim in the product repo is currently unproven.
-- **The numbers are from a host JVM, not a device.** The eval run's own
-  governance block records `deviceId: TEST-HARNESS-JVM`, `present: false`. The
-  macro and face metrics are uncalibrated and the run is marked `INCOMPLETE`.
-- **It cannot be a substitute** for a hands-on device demo. It is a preview and
-  a self-check: it proves the arithmetic and shows the measurement record, and
-  it stops short of pretending the product is finished.
-
-## File map
-
-| Path | What it is |
-|---|---|
-| `index.html` | The whole app. 208 lines of markup, no framework, no bundler. |
-| `assets/css/app.css` | One stylesheet, dark theme. No `@import`, no remote `url()`. |
-| `assets/js/mrz.js` | The ICAO 9303 engine, 255 lines. Port of the sibling repo's Kotlin. |
-| `assets/js/corpus.js` | Corpus loader and runner, 112 lines. Both fixed defects are commented at the fix site. |
-| `assets/js/i18n.js` | English/Hindi string table and the toggle. |
-| `assets/js/panels.js` | The replay surfaces: scenarios, measured, limits, provenance. Every measurement number is read from the JSON at render time; the only literals are display precision and the 0–100 bar clamp. |
-| `assets/js/pdfscan.js` | The PDF panel and the in-browser specimen generator. |
-| `assets/js/main.js` | The entry point `index.html` loads, 523 lines. Wires everything. |
-| `assets/vendor/pdf.min.mjs`<br>`assets/vendor/pdf.worker.min.mjs` | pdf.js 4.10.38, Apache-2.0. |
-| `data/corpus.txt` | 10,000 rows, pipe-delimited, from the eval run. 1,255,934 bytes. |
-| `data/evalrun.json` | Counters, measures, buckets, governance — verbatim. |
-| `data/scenarios.json` | 5 scenarios: layers, findings, verdict, EN/HI strings. |
-| `data/transcripts/*.txt` | Unedited console transcripts, one per scenario. |
-| `tools/capture_real_output.py` | Regenerates everything in `data/`. Needs JDK 17. |
-| `vercel.json` | Deployment config. No build step. |
-
-There is no `samples/` directory. The MRZ lab's specimen buttons are built at
-runtime into `#mrz-samples` by `buildSamples()` in `main.js`.
+- **KASOTI itself has no `LICENSE` file**, in this repository or in the sibling
+  repository. Terms are not yet formalised and there is no licence file to point
+  a reader at. The sibling repository records its intended position as prose
+  only — prototype for a SIH demonstration and research evaluation, not for
+  operational deployment without legal and technical clearance — and logs the
+  missing file as an open item (`docs/STATUS.md`, risk `R-I`).
