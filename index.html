@@ -3,20 +3,62 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Docuscan — ICAO 9303 check digits, running in your browser</title>
+
+<!-- ===== identity + description =========================================
+     Two descriptions, deliberately not the same sentence. The meta one is
+     what a search result or a shared link shows, so it states what the page
+     does. The og one is what a judge sees on the card when someone pastes the
+     link in a chat, so it leads with the mechanism and the no-upload fact.
+     Both avoid claiming a verdict engine, because there is not one here. -->
 <meta name="description" content="Docuscan checks travel documents against ICAO 9303 and refuses to return a verdict when a check did not run. This page runs part of that locally — check digits, the corpus, PDF text layers — and names what it cannot. Your document never leaves this machine.">
+<meta name="application-name" content="Docuscan">
+<meta name="author" content="Docuscan">
+<meta name="keywords" content="ICAO 9303, MRZ, machine-readable zone, check digit, document screening, border security, document forgery, tamper detection, passport verification, fail-closed, offline">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="index, follow">
 <meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0b0d">
+<meta name="application-name" content="Docuscan">
+<meta name="format-detection" content="telephone=no">
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="Docuscan">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_GB">
 <meta property="og:title" content="Docuscan — ICAO 9303 check digits, running in your browser">
 <meta property="og:description" content="ICAO 9303 check digits computed live, 10,000 corpus rows re-checked in your tab, a PDF text layer read locally, and five recorded verdicts replayed. Nothing is uploaded.">
-<meta property="og:type" content="website">
-<link rel="stylesheet" href="assets/css/app.css">
+<meta property="og:image" content="assets/social/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Docuscan hero: a passport machine-readable zone being altered, with the document-number and composite check digits both failing.">
+
+<!-- X / Twitter. summary_large_image is what puts the 1200x630 card in the
+     timeline instead of a cropped thumbnail. -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Docuscan — ICAO 9303 check digits, running in your browser">
+<meta name="twitter:description" content="ICAO 9303 check digits computed live, 10,000 corpus rows re-checked in your tab, a PDF text layer read locally, and five recorded verdicts replayed. Nothing is uploaded.">
+<meta name="twitter:image" content="assets/social/card.png">
+<meta name="twitter:image:alt" content="A passport machine-readable zone being altered, with two check digits failing.">
+
+<!-- ===== icons ========================================================
+     An inline SVG for modern browsers (crisp at any size, one request),
+     with a raster fallback for the ones that do not take data: URIs. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0b0d'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='19' font-weight='bold' fill='%23ffb454' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="alternate icon" type="image/png" sizes="32x32" href="assets/social/icon-32.png">
+<link rel="apple-touch-icon" href="assets/social/icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+
+<link rel="stylesheet" href="assets/css/app.css">
+
 </head>
+
 <body>
 
 <header class="nav">
   <div class="wrap nav-in">
-    <div class="brand">KASOT<span>I</span></div>
+    <div class="brand">DOCU<span>SCAN</span></div>
     <nav class="nav-links">
       <a href="#lab"      data-en="MRZ lab"    data-hi="MRZ प्रयोगशाला">MRZ lab</a>
       <a href="#corpus"   data-en="Corpus"     data-hi="कॉर्पस">Corpus</a>

@@ -553,9 +553,53 @@ function wireLanguage() {
   });
 }
 
+/* ------------------------------------------------------------------ metadata */
+
+/**
+ * Make the share metadata absolute.
+ *
+ * og:image is written as a first-party relative path, because the deploy domain
+ * is not known until the first push — and may be a different domain on every
+ * preview build. Crawlers that run JavaScript resolve a relative value happily;
+ * crawlers that do not are not guaranteed to. So the markup keeps the relative
+ * path as the fallback and this rewrites it, plus og:url and the canonical link,
+ * to absolute at runtime. Cheap, and it makes the share card correct on whichever
+ * URL the page was actually served from.
+ *
+ * This lives here rather than in an inline <script> so the page keeps exactly one
+ * entry point and no bundler-shaped seam, which is a property the build asserts.
+ */
+function absolutiseShareMetadata() {
+  try {
+    const absolute = (v) => {
+      if (!v || /^(https?:)?\/\//i.test(v) || v.charAt(0) === '#') return null;
+      try { return new URL(v, location.href).href; } catch { return null; }
+    };
+    document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]')
+      .forEach((tag) => {
+        const a = absolute(tag.getAttribute('content'));
+        if (a) tag.setAttribute('content', a);
+      });
+    const page = location.href.split('#')[0];
+    if (!document.querySelector('meta[property="og:url"]')) {
+      const u = document.createElement('meta');
+      u.setAttribute('property', 'og:url');
+      u.setAttribute('content', page);
+      document.head.appendChild(u);
+    }
+    if (!document.querySelector('link[rel="canonical"]')) {
+      const c = document.createElement('link');
+      c.setAttribute('rel', 'canonical');
+      c.setAttribute('href', page);
+      document.head.appendChild(c);
+    }
+  } catch { /* metadata is not worth breaking the page over */ }
+}
+
 /* ------------------------------------------------------------------- boot */
 
 function boot() {
+  absolutiseShareMetadata();
   applyStatic(document);
   wireLanguage();
   initHeroDemo();
