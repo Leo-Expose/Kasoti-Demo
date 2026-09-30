@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — the replay panels: verdicts, the measurement record, the limits, the footer.
+ * Docuscan — the replay panels: verdicts, the measurement record, the limits, the footer.
  *
  * Three rules govern this file, and they matter more than the layout:
  *

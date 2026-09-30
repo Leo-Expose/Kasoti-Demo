@@ -1,6 +1,6 @@
-# KASOTI-Demo
+# Docuscan
 
-A static, zero-backend browser demo of **KASOTI**, a border travel-document
+A static, zero-backend browser demo of **Docuscan**, a border travel-document
 screening project. It is one HTML file, one stylesheet, seven ES modules, a
 vendored copy of pdf.js, and 1.25 MB of recorded evaluation data. There is no
 build step, no server, no account and no network call. The page runs in the tab
@@ -62,7 +62,7 @@ invention.** `assets/js/mrz.js` is a JavaScript port of the Kotlin at
 (`MrzCheckDigit.kt`, `MrzParser.kt`, `MrzModel.kt`). What it implements is the
 **ICAO Doc 9303 published standard**: repeating weights 7, 3, 1; characters
 `0`–`9` → `0`–`9`, `A`–`Z` → `10`–`35`, filler `<` → `0`; modulo 10. The
-arithmetic is the standard's, not KASOTI's. The port exists so the arithmetic
+arithmetic is the standard's, not Docuscan's. The port exists so the arithmetic
 can be checked by hand and so the corpus can be re-verified in the browser.
 
 **2. Every number comes from one run.** Eval run id `eval-20260930-smoke-653a`,
@@ -84,8 +84,16 @@ Three caveats belong with that run:
 - The scenario *titles and blurbs* in `data/scenarios.json` are authored prose
   from the `SCENARIOS` block at `tools/capture_real_output.py:58-109`, not engine
   output. Everything else in that file is captured.
+- The recorded transcripts still print the engine's own project name — the banner
+  reads `KASOTI screening RED`, and one layer detail reads
+  `dev.kasoti.diary`. Those files are **byte-for-byte captures and are not
+  edited**, because the panel's central claim is that they are verbatim. Renaming
+  them would make that claim false to save a reader five seconds of confusion.
+  The rename to Docuscan is presentational only: it covers the page, the prose
+  and the documents this demo generates, and it touches no identifier, no path
+  and no recorded output.
 
-**3. KASOTI's fusion rules are not re-implemented here at all.** Not in this
+**3. Docuscan's fusion rules are not re-implemented here at all.** Not in this
 repository, not in the browser, nowhere. `assets/js/` contains no fusion, no
 scoring, no finding codes and no verdict logic. Grepping the seven modules for
 `VERDICT`, `RED` and `AMBER` returns 12 hits, all of them display
@@ -453,7 +461,7 @@ cd Kasoti-Demo
 python3 tools/capture_real_output.py /mnt/Lay/Kasoti
 ```
 
-This needs the sibling KASOTI repository checked out, a JDK 17 for Gradle, and
+This needs the sibling source repository checked out, a JDK 17 for Gradle, and
 `eval/runs/eval-20260930-smoke-653a/` to already exist in it. The run id is
 pinned as a constant at `tools/capture_real_output.py:37`; if that directory is
 absent the script exits immediately at `:245` rather than inventing a run.
@@ -553,7 +561,7 @@ runtime into `#mrz-samples` by `buildSamples()` in `assets/js/main.js`.
 - **MRZ arithmetic** is ICAO Doc 9303. ICAO specifications are not open-licensed
   text; the check-digit algorithm in parts 4, 5 and 6 is implemented here from
   the published standard.
-- **KASOTI itself has no `LICENSE` file**, in this repository or in the sibling
+- **The project has no `LICENSE` file**, in this repository or in the sibling
   repository. Terms are not yet formalised and there is no licence file to point
   a reader at. The sibling repository records its intended position as prose
   only — prototype for a SIH demonstration and research evaluation, not for

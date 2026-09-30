@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — the 10,000-row MRZ mutation corpus, re-checked in the browser.
+ * Docuscan — the 10,000-row MRZ mutation corpus, re-checked in the browser.
  *
  * `data/corpus.txt` is the corpus from the real eval run, one row per line:
  *

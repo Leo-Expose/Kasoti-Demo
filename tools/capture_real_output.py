@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-KASOTI-Demo — capture REAL engine output from the real repo into this demo's data/ dir.
+Docuscan — capture REAL engine output from the real repo into this demo's data/ dir.
 
 Run from the Kasoti-Demo directory:
 

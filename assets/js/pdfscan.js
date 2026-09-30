@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — the PDF check panel.
+ * Docuscan — the PDF check panel.
  *
  * THE CONTRACT, and the reason this file is shaped the way it is:
  * the chosen file is read once, into an ArrayBuffer, via `File.arrayBuffer()`
@@ -248,13 +248,13 @@ function pdfString(s) {
 export function buildSpecimenPdf(opts = {}) {
   const line1 = opts.line1 || SPECIMEN_L1;
   const line2 = opts.line2 || SPECIMEN_L2;
-  const title = opts.title || 'KASOTI specimen (synthetic)';
+  const title = opts.title || 'Docuscan specimen (synthetic)';
   const stamp = opts.stamp || 'D:20260101000000Z';
 
   // Deliberately terse visible text: every token here is far shorter than the
   // 40-character floor in findMrzCandidates(), so it can never be mistaken for
   // a second machine-readable zone.
-  const heading = 'KASOTI SPECIMEN - NOT A REAL TRAVEL DOCUMENT';
+  const heading = 'DOUSCAN SPECIMEN - NOT A REAL TRAVEL DOCUMENT';
   const stream = [
     'BT /F1 8 Tf 40 780 Td (' + pdfString(heading) + ') Tj ET',
     'BT /F1 10 Tf 40 730 Td 13 TL',
@@ -273,10 +273,10 @@ export function buildSpecimenPdf(opts = {}) {
     '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>',
     `<< /Length ${enc(stream).byteLength} >>\nstream\n${stream}endstream`,
     `<< /Title (${pdfString(title)})`
-      + ' /Author (KASOTI demo)'
+      + ' /Author (Docuscan demo)'
       + ' /Subject (Synthetic ICAO 9303 TD3 specimen)'
-      + ' /Creator (KASOTI in-browser generator)'
-      + ' /Producer (KASOTI in-browser generator)'
+      + ' /Creator (Docuscan in-browser generator)'
+      + ' /Producer (Docuscan in-browser generator)'
       + ` /CreationDate (${stamp}) /ModDate (${stamp}) >>`,
   ];
 
@@ -1117,12 +1117,12 @@ export function initPdfPanel() {
       // red row to see the catch.
       const altered = buildSpecimenPdf({
         line1: alteredSpecimen(),
-        title: 'KASOTI specimen (check digit altered)',
+        title: 'Docuscan specimen (check digit altered)',
       });
       handleBuffer(intake('specimen-altered.pdf', altered.size, S.alteredSpec),
         () => altered.arrayBuffer());
 
-      const valid = buildSpecimenPdf({ title: 'KASOTI specimen (valid)' });
+      const valid = buildSpecimenPdf({ title: 'Docuscan specimen (valid)' });
       handleBuffer(intake('specimen-valid.pdf', valid.size, S.validSpec),
         () => valid.arrayBuffer());
     });

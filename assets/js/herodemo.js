@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — the live hero instrument, and the judge brief strip above it.
+ * Docuscan — the live hero instrument, and the judge brief strip above it.
  *
  * Two pieces, both built from real data and the real engine:
  *

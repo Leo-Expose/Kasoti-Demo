@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — entry point.
+ * Docuscan — entry point.
  *
  * Wires the page together: language toggle, hero counters, the live MRZ lab, the
  * 10,000-row corpus runner, the PDF panel, and the replayed data panels.

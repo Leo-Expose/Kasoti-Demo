@@ -1,5 +1,5 @@
 /* ==========================================================================
-   KASOTI — demo stylesheet
+   Docuscan — demo stylesheet
    Instrument-panel aesthetic: near-black ground, hairline rules, monospace for
    every value, one accent. Saturated colour is reserved for verdict states so
    that a RED on screen is never decoration.
@@ -520,13 +520,13 @@ footer .mono { font-size: .78rem; }
 }
 .instrument-dot {
   width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3);
-  flex: none; animation: kasoti-pulse 2.4s ease-in-out infinite;
+  flex: none; animation: docuscan-pulse 2.4s ease-in-out infinite;
 }
 .instrument[data-phase="phaseChecks"] .instrument-dot,
 .instrument[data-phase="phaseTamper"] .instrument-dot { background: var(--accent); }
 .instrument[data-verdict="PASS"] .instrument-dot { background: var(--green); }
 .instrument[data-verdict="FAIL"] .instrument-dot { background: var(--red); }
-@keyframes kasoti-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes docuscan-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 
 .instrument-title { color: var(--ink-2); }
 .instrument-phase { margin-left: auto; color: var(--accent); }

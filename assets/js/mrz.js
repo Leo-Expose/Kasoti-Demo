@@ -1,12 +1,12 @@
 /**
- * KASOTI-Demo — ICAO 9303 machine-readable-zone engine.
+ * Docuscan — ICAO 9303 machine-readable-zone engine.
  *
  * This is a direct port of `core/src/commonMain/kotlin/dev/kasoti/mrz/MrzCheckDigit.kt`
- * and `MrzParser.kt` from the KASOTI repo. It is here so a judge can verify the
+ * and `MrzParser.kt` from the Kotlin source repo. It is here so a judge can verify the
  * arithmetic by hand in front of us, and so the 10,000-row corpus can be re-checked
  * in the browser.
  *
- * It is NOT a re-implementation of KASOTI's fusion rules. Those are not re-implemented
+ * It is NOT a re-implementation of Docuscan's fusion rules. Those are not re-implemented
  * anywhere in this demo; the verdict panel replays real engine output instead. What is
  * ported here is the ICAO 9303 standard itself: repeating weights 7,3,1, values
  * 0-9 -> 0..9, A-Z -> 10..35, '<' -> 0, modulo 10.

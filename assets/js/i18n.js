@@ -1,5 +1,5 @@
 /**
- * KASOTI-Demo — bilingual strings.
+ * Docuscan — bilingual strings.
  *
  * Every string the verdict engine prints has an English and a Hindi form in the
  * real product (`core/.../i18n/Messages.kt`, enforced by a test that fails when a
@@ -21,8 +21,8 @@ export const STR = {
   'hero.h1a':       ['A perfect forgery of the data', 'डेटा की एक पूर्ण नकल'],
   'hero.h1b':       ['is still the wrong artifact.', 'फिर भी गलत वस्तु है।'],
   'hero.lede': [
-    'KASOTI screens travel documents at border posts. It checks the machine-readable zone against ICAO 9303, cross-checks the printed page against it, and refuses to return a verdict when a check did not run. This page runs that logic in your browser — your document never leaves this machine.',
-    'KASOTI सीमा पोस्ट पर यात्रा दस्तावेज़ जाँचता है। यह मशीन-पठन क्षेत्र को ICAO 9303 के अनुसार जाँचता है, मुद्रित पृष्ठ की उससे तुलना करता है, और जब कोई जाँच नहीं चली तो निर्णय देने से मना कर देता है। यह पृष्ठ वही तर्क आपके ब्राउज़र में चलाता है — आपका दस्तावेज़ इस मशीन से कभी बाहर नहीं जाता।',
+    'Docuscan screens travel documents at border posts. It checks the machine-readable zone against ICAO 9303, cross-checks the printed page against it, and refuses to return a verdict when a check did not run. This page runs that logic in your browser — your document never leaves this machine.',
+    'Docuscan सीमा पोस्ट पर यात्रा दस्तावेज़ जाँचता है। यह मशीन-पठन क्षेत्र को ICAO 9303 के अनुसार जाँचता है, मुद्रित पृष्ठ की उससे तुलना करता है, और जब कोई जाँच नहीं चली तो निर्णय देने से मना कर देता है। यह पृष्ठ वही तर्क आपके ब्राउज़र में चलाता है — आपका दस्तावेज़ इस मशीन से कभी बाहर नहीं जाता।',
   ],
   'hero.cta1':      ['Check a document', 'दस्तावेज़ जाँचें'],
   'hero.cta2':      ['Upload a PDF', 'PDF अपलोड करें'],
